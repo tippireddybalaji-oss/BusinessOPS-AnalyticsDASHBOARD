@@ -1,0 +1,77 @@
+# ──────────────────────────────────────────────
+# Java / Maven
+# ──────────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+
+# Maven wrapper cache
+.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+
+# ──────────────────────────────────────────────
+# IDE – IntelliJ IDEA
+# ──────────────────────────────────────────────
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# IDE – Eclipse / STS
+.classpath
+.project
+.settings/
+.factorypath
+bin/
+
+# IDE – VS Code
+.vscode/
+
+# IDE – NetBeans
+nbproject/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ──────────────────────────────────────────────
+# macOS
+# ──────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ──────────────────────────────────────────────
+# Firebase / Google Cloud  –  NEVER COMMIT SECRETS
+# ──────────────────────────────────────────────
+firebase-service-account.json
+serviceAccountKey.json
+*-service-account*.json
+*-credentials*.json
+google-services.json
+GoogleService-Info.plist
+.env
+.env.*
+*.pem
+*.p12
+*.pfx
+
+# ──────────────────────────────────────────────
+# Logs & runtime artefacts
+# ──────────────────────────────────────────────
+*.log
+logs/
+spring.log
+
+# ──────────────────────────────────────────────
+# Build / packaging
+# ──────────────────────────────────────────────
+build/
