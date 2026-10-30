@@ -1,35 +1,37 @@
 package com.businessops.dashboard.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.cloud.FirestoreClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import jakarta.annotation.PostConstruct;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Firebase Admin SDK initialisation.
  *
- * <p>The service-account credential file is <strong>never</strong> committed to
- * version control.  Set one of the following before starting the application:
+ * <p>Credentials are <strong>never</strong> hardcoded or committed.
+ * The SDK reads them from the {@code GOOGLE_APPLICATION_CREDENTIALS} environment
+ * variable (Application Default Credentials).  No credential path is stored in
+ * {@code application.properties} — the property was removed to avoid any
+ * temptation to commit a real path.
  *
- * <ol>
- *   <li><b>Environment variable</b> {@code GOOGLE_APPLICATION_CREDENTIALS}
- *       pointing to the JSON key file – the SDK picks this up automatically.</li>
- *   <li><b>Application property</b> {@code firebase.service-account-path}
- *       (in {@code application.properties} or via {@code -D} flag) pointing to
- *       the JSON key file on disk.</li>
- * </ol>
+ * <p>If credentials are absent (e.g. local dev or CI without Firebase) the
+ * application context still loads with a warning; only Firebase-backed endpoints
+ * will fail at runtime.
  *
- * <p>If neither is set the application starts without Firebase (graceful
- * degradation) and logs a warning.  This keeps the test suite runnable on CI
- * without real credentials.
+ * <h2>Exposed beans</h2>
+ * <ul>
+ *   <li>{@link FirebaseAuth} – used by the security filter to verify ID tokens</li>
+ *   <li>{@link Firestore}    – reusable Firestore client for future repository
+ *       classes; no collections are created here</li>
+ * </ul>
  */
 @Configuration
 public class FirebaseConfig {
@@ -37,52 +39,77 @@ public class FirebaseConfig {
     private static final Logger log = LoggerFactory.getLogger(FirebaseConfig.class);
 
     /**
-     * Optional path to a Firebase service-account JSON file.
-     * Leave blank to fall back to Application Default Credentials (ADC)
-     * or to run without Firebase during local development / CI.
+     * Initialises the default {@link FirebaseApp} once using Application Default
+     * Credentials.  Idempotent – skips re-initialisation on hot-reload.
+     *
+     * @throws IOException if credential loading fails (caught internally;
+     *                     app degrades gracefully with a WARN log)
      */
-    @Value("${firebase.service-account-path:}")
-    private String serviceAccountPath;
-
-    @PostConstruct
-    public void initFirebase() {
-        // Skip if already initialised (e.g. hot-reload in dev)
+    @Bean
+    public FirebaseApp firebaseApp() {
         if (!FirebaseApp.getApps().isEmpty()) {
-            log.info("Firebase already initialised – skipping.");
-            return;
+            log.info("Firebase already initialised – reusing existing FirebaseApp.");
+            return FirebaseApp.getInstance();
         }
 
         try {
-            FirebaseOptions options;
-
-            if (serviceAccountPath != null && !serviceAccountPath.isBlank()) {
-                // Explicit path configured via property
-                log.info("Initialising Firebase from service-account file: {}", serviceAccountPath);
-                try (InputStream serviceAccount = new FileInputStream(serviceAccountPath)) {
-                    options = FirebaseOptions.builder()
-                            .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                            .build();
-                }
-            } else {
-                // Fall back to Application Default Credentials (GOOGLE_APPLICATION_CREDENTIALS, etc.)
-                log.info("No firebase.service-account-path set – trying Application Default Credentials.");
-                options = FirebaseOptions.builder()
-                        .setCredentials(GoogleCredentials.getApplicationDefault())
-                        .build();
-            }
-
-            FirebaseApp.initializeApp(options);
-            log.info("Firebase Admin SDK initialised successfully.");
-
+            GoogleCredentials credentials = GoogleCredentials.getApplicationDefault();
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(credentials)
+                    .build();
+            FirebaseApp app = FirebaseApp.initializeApp(options);
+            log.info("Firebase Admin SDK initialised successfully via Application Default Credentials.");
+            return app;
         } catch (IOException e) {
-            // Graceful degradation: log a warning but do not crash the application.
-            // Firebase-dependent endpoints will fail at runtime when credentials are absent.
+            /*
+             * Graceful degradation: log a warning but do not prevent context startup.
+             * Endpoints that depend on Firebase (auth filter, /api/auth/me) will throw
+             * at runtime.  The public /api/health endpoint remains unaffected.
+             */
             log.warn(
-                "Firebase Admin SDK could not be initialised ({}). "
-                + "Set GOOGLE_APPLICATION_CREDENTIALS or firebase.service-account-path "
-                + "before using Firebase-backed features.",
+                "Firebase Admin SDK could not be initialised – {}. "
+                + "Set GOOGLE_APPLICATION_CREDENTIALS before using Firebase-backed features.",
                 e.getMessage()
             );
+            return null;   // null bean; consumers must guard with @Autowired(required=false)
         }
+    }
+
+    /**
+     * Exposes {@link FirebaseAuth} as a Spring bean so it can be injected into
+     * the security filter and other components.
+     *
+     * <p>Returns {@code null} (optional bean) when Firebase could not be
+     * initialised.  Consumers that depend on it will fail at runtime with a clear
+     * message rather than at startup.
+     *
+     * @param firebaseApp the initialised {@link FirebaseApp} (may be {@code null})
+     * @return a {@link FirebaseAuth} instance, or {@code null} if unavailable
+     */
+    @Bean
+    public FirebaseAuth firebaseAuth(FirebaseApp firebaseApp) {
+        if (firebaseApp == null) {
+            log.warn("FirebaseAuth bean is null because FirebaseApp failed to initialise.");
+            return null;
+        }
+        return FirebaseAuth.getInstance(firebaseApp);
+    }
+
+    /**
+     * Exposes a reusable {@link Firestore} client bean.
+     *
+     * <p>No collections are created here.  Business repository classes will
+     * inject this bean in future phases.
+     *
+     * @param firebaseApp the initialised {@link FirebaseApp} (may be {@code null})
+     * @return a {@link Firestore} client, or {@code null} if unavailable
+     */
+    @Bean
+    public Firestore firestore(FirebaseApp firebaseApp) {
+        if (firebaseApp == null) {
+            log.warn("Firestore bean is null because FirebaseApp failed to initialise.");
+            return null;
+        }
+        return FirestoreClient.getFirestore(firebaseApp);
     }
 }

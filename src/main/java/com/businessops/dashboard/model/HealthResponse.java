@@ -13,3 +13,4 @@ public record HealthResponse(String status, String application) {
         return new HealthResponse("UP", "BusinessOPS and analyticsDASHBOARD");
     }
 }
+

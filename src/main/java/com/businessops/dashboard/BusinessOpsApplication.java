@@ -6,11 +6,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * Entry point for the BusinessOPS Analytics Dashboard backend.
  *
- * <p>Phase 1 – Backend foundation:
+ * <p>Phase 2 – Firebase Auth + Firestore integration:
  * <ul>
  *   <li>Spring Boot REST API</li>
- *   <li>Firebase Admin SDK integration</li>
- *   <li>Health endpoint at {@code GET /api/health}</li>
+ *   <li>Firebase Admin SDK (Auth + Firestore)</li>
+ *   <li>Spring Security with Firebase ID token filter</li>
+ *   <li>Health endpoint at {@code GET /api/health} (public)</li>
+ *   <li>Auth endpoint at {@code GET /api/auth/me} (protected)</li>
  * </ul>
  */
 @SpringBootApplication
