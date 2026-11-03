@@ -76,19 +76,7 @@ public class WorkspaceService {
         Workspace workspace = workspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: " + workspaceId));
 
-        // Enforce server-side authorization: user must be an owner or active member
-        Optional<WorkspaceMember> memberOpt = workspaceRepository.findMember(workspaceId, authenticatedUid);
-        WorkspaceRole role;
-
-        if (memberOpt.isPresent()) {
-            role = memberOpt.get().getRole();
-        } else if (authenticatedUid.equals(workspace.getOwnerUid())) {
-            role = WorkspaceRole.OWNER;
-        } else {
-            log.warn("Access denied: user {} attempted to access workspace {} without membership", authenticatedUid, workspaceId);
-            throw new WorkspaceAccessDeniedException("You do not have permission to access workspace: " + workspaceId);
-        }
-
+        WorkspaceRole role = resolveUserRole(workspace, authenticatedUid);
         return WorkspaceResponse.from(workspace, role);
     }
 
@@ -116,5 +104,51 @@ public class WorkspaceService {
         }
 
         return responses;
+    }
+
+    /**
+     * Verifies that the workspace exists and that the user is an active member or owner.
+     *
+     * @param authenticatedUid verified Firebase UID of caller
+     * @param workspaceId target workspace ID
+     * @return the caller's role in the workspace
+     * @throws ResourceNotFoundException if workspace does not exist (404)
+     * @throws WorkspaceAccessDeniedException if user is not authorized (403)
+     */
+    public WorkspaceRole verifyWorkspaceAccess(String authenticatedUid, String workspaceId) {
+        Workspace workspace = workspaceRepository.findById(workspaceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id: " + workspaceId));
+
+        return resolveUserRole(workspace, authenticatedUid);
+    }
+
+    /**
+     * Verifies that the caller has write privileges (OWNER or ADMIN) in the target workspace.
+     *
+     * @param authenticatedUid verified Firebase UID of caller
+     * @param workspaceId target workspace ID
+     * @return the caller's role
+     * @throws ResourceNotFoundException if workspace does not exist (404)
+     * @throws WorkspaceAccessDeniedException if user has insufficient permissions (403)
+     */
+    public WorkspaceRole verifyWorkspaceWriteAccess(String authenticatedUid, String workspaceId) {
+        WorkspaceRole role = verifyWorkspaceAccess(authenticatedUid, workspaceId);
+        if (role == WorkspaceRole.MEMBER) {
+            log.warn("Write access denied: user {} has role {} in workspace {}", authenticatedUid, role, workspaceId);
+            throw new WorkspaceAccessDeniedException("Insufficient permissions: Member role cannot perform write operations in workspace: " + workspaceId);
+        }
+        return role;
+    }
+
+    private WorkspaceRole resolveUserRole(Workspace workspace, String authenticatedUid) {
+        Optional<WorkspaceMember> memberOpt = workspaceRepository.findMember(workspace.getId(), authenticatedUid);
+        if (memberOpt.isPresent()) {
+            return memberOpt.get().getRole();
+        } else if (authenticatedUid.equals(workspace.getOwnerUid())) {
+            return WorkspaceRole.OWNER;
+        } else {
+            log.warn("Access denied: user {} attempted to access workspace {} without membership", authenticatedUid, workspace.getId());
+            throw new WorkspaceAccessDeniedException("You do not have permission to access workspace: " + workspace.getId());
+        }
     }
 }
