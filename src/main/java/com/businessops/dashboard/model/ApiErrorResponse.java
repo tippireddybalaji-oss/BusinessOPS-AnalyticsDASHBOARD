@@ -29,3 +29,4 @@ public record ApiErrorResponse(
         return new ApiErrorResponse(error, status, message, path, Instant.now(), validationErrors);
     }
 }
+

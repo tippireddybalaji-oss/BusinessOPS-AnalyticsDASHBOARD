@@ -126,3 +126,4 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody().message()).doesNotContain("192.168.1.50");
     }
 }
+

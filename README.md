@@ -7,255 +7,292 @@
 
 ## Overview
 
-**BusinessOPS Analytics Dashboard** is a full-stack business operations and
+**BusinessOPS Analytics Dashboard** is an enterprise-grade business operations and
 analytics platform built on:
 
 | Layer | Technology |
 |---|---|
 | Backend runtime | Java 21 + Spring Boot 3.4.5 |
 | Build tool | Apache Maven 3.x |
-| Authentication | Firebase Authentication (ID token verification) |
+| Authentication | Firebase Authentication (Server-verified ID tokens) |
 | Database | Cloud Firestore |
-| Firebase SDK | Firebase Admin SDK 9.4.1 for Java |
-| Security | Spring Security (stateless, token-based, CORS-configured) |
+| Server integration | Firebase Admin SDK 9.4.1 for Java |
+| Security & Access Control | Spring Security (stateless, token-based, server-side authorization) |
 | Error Handling | Centralized `@RestControllerAdvice` (`ApiErrorResponse`) |
-| Frontend *(Phase 3+)* | HTML5, CSS3, Vanilla JavaScript (ES6+), Chart.js |
+| Frontend *(Future Phase)* | HTML5, CSS3, Vanilla JavaScript (ES6+), Chart.js |
 
 ---
 
 ## Project Phases
 
-- [x] **Phase 1 – Backend foundation** — Maven / Spring Boot scaffold, health endpoint, tests
-- [x] **Phase 2 – Firebase Auth + Firestore integration**
-  - Firebase Admin SDK initialised via Application Default Credentials
-  - Spring Security filter verifying Firebase ID tokens server-side
-  - Standardized `GET /api/v1/me` (and `GET /api/auth/me`) identity endpoints
-  - Centralized exception handling with `GlobalExceptionHandler` and `ApiErrorResponse`
-  - Configurable CORS support (development origins + production override)
-  - Reusable `FirebaseAuth` and `Firestore` Spring beans
-  - Comprehensive automated test suite with zero external credential dependencies
-- [ ] Phase 3 – Frontend (HTML5 / CSS3 / Vanilla JS / Chart.js)
-- [ ] Phase 4 – Workspace model & access control
-- [ ] Phase 5 – Client management & transactions API
-- [ ] Phase 6 – Analytics engine & dashboard charts
-- [ ] Phase 7 – SaaS multi-tenancy & billing
+- [x] **Phase 0 – Repository inspection & pre-flight audit**
+- [x] **Phase 1 – Spring Boot backend foundation** (scaffold, health probe, tests)
+- [x] **Phase 2 – Workspace Model, Firestore Architecture & Server-Side Authorization** ← *current*
+  - Cloud Firestore collection structure: `users`, `workspaces`, `workspaces/{id}/members`
+  - Atomic workspace creation with automatic `OWNER` role provisioning
+  - Server-side authorization verifying workspace membership and ownership
+  - REST API v1 endpoints: `POST /api/v1/workspaces`, `GET /api/v1/workspaces`, `GET /api/v1/workspaces/{id}`
+  - Standardized `GET /api/v1/me` identity endpoint (and `/api/auth/me` alias)
+  - Jakarta Bean Validation and currency normalization (INR default)
+  - 48 automated tests (100% passing, zero external credential dependencies)
+- [ ] Phase 3 – Client management (CRUD, status filter, pagination)
+- [ ] Phase 4 – Income and expense transactions (minor units / paise, categories)
+- [ ] Phase 5 – Analytics engine (Net cash flow, monthly trends, category charts)
+- [ ] Phase 6 – Static frontend & Chart.js integration
+- [ ] Phase 7 – Quality hardening, deployment & handoff
 
 ---
 
-## Repository Structure
+## Firestore Database Architecture
 
-```
-BusinessOPS-AnalyticsDASHBOARD/
-├── pom.xml
-├── .gitignore
-├── README.md
-└── src/
-    ├── main/
-    │   ├── java/com/businessops/dashboard/
-    │   │   ├── BusinessOpsApplication.java       ← entry point
-    │   │   ├── config/
-    │   │   │   ├── FirebaseConfig.java            ← FirebaseApp + FirebaseAuth + Firestore beans
-    │   │   │   └── SecurityConfig.java            ← Spring Security + CORS rules
-    │   │   ├── controller/
-    │   │   │   ├── AuthController.java            ← GET /api/v1/me (and legacy /api/auth/me)
-    │   │   │   └── HealthController.java          ← GET /api/health (public)
-    │   │   ├── exception/
-    │   │   │   ├── FirebaseAuthenticationException.java
-    │   │   │   └── GlobalExceptionHandler.java    ← Centralized @RestControllerAdvice
-    │   │   ├── model/
-    │   │   │   ├── ApiErrorResponse.java          ← Standardized REST error payload
-    │   │   │   ├── AuthUserResponse.java          ← {uid, email} record
-    │   │   │   └── HealthResponse.java            ← {status, application} record
-    │   │   ├── repository/                        ← (reserved for Firestore repos)
-    │   │   ├── security/
-    │   │   │   └── FirebaseAuthFilter.java        ← Bearer token extraction & verification
-    │   │   └── service/                           ← (reserved for business logic)
-    │   └── resources/
-    │       └── application.properties
-    └── test/
-        ├── java/com/businessops/dashboard/
-        │   ├── BusinessOpsApplicationTests.java   ← full context smoke test
-        │   ├── controller/
-        │   │   ├── AuthControllerTest.java        ← 10 tests (auth, expiration, spoofing, CORS)
-        │   │   └── HealthControllerTest.java      ← 4 tests (public health probe)
-        │   └── exception/
-        │       └── GlobalExceptionHandlerTest.java← 6 tests (validation, 401, 403, 500)
-        └── resources/
-            └── application-test.properties
+```text
+Firestore Database
+│
+├── users/
+│   └── {uid}
+│       ├── displayName: String
+│       ├── email: String
+│       └── createdAt: Timestamp
+│
+└── workspaces/
+    └── {workspaceId}
+        ├── name: String
+        ├── ownerUid: String
+        ├── defaultCurrency: "INR"
+        ├── createdAt: Timestamp
+        ├── updatedAt: Timestamp
+        │
+        ├── members/
+        │   └── {uid}
+        │       ├── uid: String
+        │       ├── role: "OWNER" | "ADMIN" | "MEMBER"
+        │       └── joinedAt: Timestamp
+        │
+        ├── clients/             (Reserved for Phase 3)
+        ├── transactions/        (Reserved for Phase 4)
+        └── categories/          (Reserved for Phase 4)
 ```
 
----
+### Document Fields Specification
 
-## Prerequisites
+#### Workspaces Collection: `workspaces/{workspaceId}`
+* `name` (String, required): Business or company name (2–100 characters).
+* `ownerUid` (String, required): Firebase UID of the creator, derived exclusively from verified ID token.
+* `defaultCurrency` (String, required): Defaults to `"INR"`. Supported: `INR`, `USD`, `EUR`, `GBP`, `AUD`, `CAD`, `SGD`, `AED`, `JPY`.
+* `createdAt` (Timestamp): Server timestamp of creation.
+* `updatedAt` (Timestamp): Server timestamp of latest modification.
 
-| Tool | Required version |
-|---|---|
-| Java (JDK) | **21** (LTS) |
-| Apache Maven | 3.8 or newer |
-| Firebase project | Any plan (Spark / Blaze) |
-
-> **macOS with Homebrew:**
-> ```bash
-> brew install openjdk@21 maven
-> export JAVA_HOME=$(/usr/libexec/java_home -v 21)
-> ```
+#### Workspace Members Subcollection: `workspaces/{workspaceId}/members/{uid}`
+* `uid` (String): Member's Firebase UID (also used as document ID).
+* `role` (String): Workspace role: `OWNER`, `ADMIN`, or `MEMBER`.
+* `joinedAt` (Timestamp): Server timestamp when the user became a member.
 
 ---
 
-## Firebase Admin SDK Setup
+## Server-Side Authorization Invariants
 
-### 1. Create a Firebase project
+> ⚠️ **Important Security Rule:** The Firebase Admin SDK operates with privileged server credentials and **bypasses Firestore Security Rules**. Therefore, Spring Boot strictly enforces authorization in the service layer before executing database operations:
 
-Go to [console.firebase.google.com](https://console.firebase.google.com) and create or select a project.
-
-### 2. Enable Firebase Authentication
-
-In the console: **Authentication → Sign-in method** → enable the providers you need (e.g. Email/Password, Google).
-
-### 3. Generate a service-account key
-
-**Project Settings → Service Accounts → Generate new private key**
-
-Download the JSON file and store it **outside the repository**.
-
-> ⚠️ **Never commit this file.** It is blocked by `.gitignore`.
-
-### 4. Set `GOOGLE_APPLICATION_CREDENTIALS`
-
-```bash
-export GOOGLE_APPLICATION_CREDENTIALS="/absolute/path/to/serviceAccountKey.json"
-```
-
-Add this line to `~/.zshrc` (or `~/.bashrc`) to make it permanent.
-
-The Firebase Admin SDK reads this environment variable automatically — no path needs to be written into `application.properties`.
+1. **Authentication:** The `FirebaseAuthFilter` cryptographically verifies the `Authorization: Bearer <token>` header server-side.
+2. **Identity Derivation:** The caller's UID is extracted **only** from `FirebaseToken.getUid()`. Request parameters, query strings, and body fields attempting to specify `ownerUid` or `uid` are ignored.
+3. **Owner Assignment:** During workspace creation, the authenticated UID is automatically assigned as `ownerUid`, and an initial member record with role `OWNER` is written atomically in a Firestore `WriteBatch`.
+4. **Access Control:**
+   * Retrieval of `workspaces/{id}` verifies that the caller is either the `ownerUid` or exists in the `members/{uid}` subcollection.
+   * If a non-existent workspace ID is requested: returns `404 Not Found`.
+   * If an unauthorized user attempts access (cross-workspace isolation breach): returns `403 Forbidden`.
+   * Listing `GET /api/v1/workspaces` returns only workspaces owned by or shared with the caller.
 
 ---
 
-## Running the Application
+## REST API Endpoints
 
-```bash
-# 1. Clone
-git clone https://github.com/tippireddybalaji-oss/BusinessOPS-AnalyticsDASHBOARD.git
-cd BusinessOPS-AnalyticsDASHBOARD
-
-# 2. Set Firebase credentials (required for Firebase-backed endpoints)
-export GOOGLE_APPLICATION_CREDENTIALS="/path/to/serviceAccountKey.json"
-
-# 3. Set Java 21 (macOS)
-export JAVA_HOME=$(/usr/libexec/java_home -v 21)
-
-# 4. Run
-mvn spring-boot:run
-```
-
-The server starts on **http://localhost:8080**.
-
----
-
-## API Endpoints
-
-### Public Endpoints (no authentication required)
+### Public Endpoints (no auth required)
 
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/health` | Service liveness probe |
 | `OPTIONS` | `/**` | CORS preflight checks |
 
-```bash
-curl -s http://localhost:8080/api/health
-# {"status":"UP","application":"BusinessOPS and analyticsDASHBOARD"}
-```
-
 ### Protected Endpoints (Firebase ID token required)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/v1/me` | Standardized identity endpoint; returns verified caller's UID and email |
-| `GET` | `/api/auth/me` | Legacy alias for `/api/v1/me` |
-
-#### Test the auth endpoint
-
-```bash
-ID_TOKEN="<paste-firebase-id-token-here>"
-
-curl -s \
-  -H "Authorization: Bearer $ID_TOKEN" \
-  http://localhost:8080/api/v1/me | python3 -m json.tool
-# {
-#   "uid": "abc123firebaseUid",
-#   "email": "user@example.com"
-# }
-```
-
-#### Missing, invalid, or expired token → 401
-
-```bash
-curl -s http://localhost:8080/api/v1/me
-# {"error":"Authentication required.","status":401}
-```
+| `GET` | `/api/v1/me` | Returns verified caller identity (`uid`, `email`) |
+| `POST` | `/api/v1/workspaces` | Creates a new workspace; creator becomes `OWNER` |
+| `GET` | `/api/v1/workspaces` | Lists all workspaces accessible to the caller |
+| `GET` | `/api/v1/workspaces/{id}` | Retrieves workspace details (enforces membership) |
 
 ---
 
-## Centralized Error Handling
+## API Request & Response Examples
 
-All REST exceptions are caught by `GlobalExceptionHandler` and returned as a standardized `ApiErrorResponse` payload:
+### 1. Create Workspace
 
-```json
+**Request:**
+```bash
+POST /api/v1/workspaces
+Authorization: Bearer <Firebase_ID_Token>
+Content-Type: application/json
+
 {
-  "error": "Validation Failed",
-  "status": 400,
-  "message": "Input validation failed. Please check field errors.",
-  "path": "/api/v1/workspaces",
-  "timestamp": "2026-11-03T13:20:00Z",
-  "validationErrors": {
-    "name": "Workspace name cannot be blank"
-  }
+  "name": "Bharat Retail Operations",
+  "defaultCurrency": "INR"
 }
 ```
 
-Stack traces and sensitive internal details are never leaked in error messages.
-
----
-
-## CORS Configuration
-
-Configured in `SecurityConfig` via `app.cors.allowed-origins` in `application.properties`:
-* **Default development origins:** `http://localhost:3000`, `http://127.0.0.1:3000`, `http://localhost:5500`, `http://127.0.0.1:5500`, `http://localhost:8080`, `http://127.0.0.1:8080`
-* **Production override:** Set environment variable `APP_CORS_ALLOWED_ORIGINS="https://dashboard.example.com"`
-* **Allowed HTTP methods:** `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `OPTIONS`
-* **Allowed headers:** `Authorization`, `Content-Type`, `Accept`, `X-Requested-With`, `Origin`
-* **Pre-flight caching:** 1 hour (`maxAge = 3600`)
-
----
-
-## Running Tests & Build
-
-```bash
-export JAVA_HOME=$(/usr/libexec/java_home -v 21)
-
-# Run automated tests
-mvn test
-
-# Package build (creates executable JAR in target/)
-mvn clean package
+**Response (`201 Created`):**
+```json
+{
+  "id": "7d9e1f2a-8c3b-4e5d-9f0a-1b2c3d4e5f6a",
+  "name": "Bharat Retail Operations",
+  "ownerUid": "firebaseUid12345",
+  "defaultCurrency": "INR",
+  "createdAt": "2026-11-03T13:40:00Z",
+  "updatedAt": "2026-11-03T13:40:00Z",
+  "role": "OWNER"
+}
 ```
 
-Zero real Firebase credentials are required for running tests; all Firebase components are mocked.
+### 2. List Workspaces
+
+**Request:**
+```bash
+GET /api/v1/workspaces
+Authorization: Bearer <Firebase_ID_Token>
+```
+
+**Response (`200 OK`):**
+```json
+[
+  {
+    "id": "7d9e1f2a-8c3b-4e5d-9f0a-1b2c3d4e5f6a",
+    "name": "Bharat Retail Operations",
+    "ownerUid": "firebaseUid12345",
+    "defaultCurrency": "INR",
+    "createdAt": "2026-11-03T13:40:00Z",
+    "updatedAt": "2026-11-03T13:40:00Z",
+    "role": "OWNER"
+  }
+]
+```
+
+### 3. Retrieve Workspace Details
+
+**Request:**
+```bash
+GET /api/v1/workspaces/7d9e1f2a-8c3b-4e5d-9f0a-1b2c3d4e5f6a
+Authorization: Bearer <Firebase_ID_Token>
+```
+
+**Response (`200 OK`):**
+```json
+{
+  "id": "7d9e1f2a-8c3b-4e5d-9f0a-1b2c3d4e5f6a",
+  "name": "Bharat Retail Operations",
+  "ownerUid": "firebaseUid12345",
+  "defaultCurrency": "INR",
+  "createdAt": "2026-11-03T13:40:00Z",
+  "updatedAt": "2026-11-03T13:40:00Z",
+  "role": "OWNER"
+}
+```
+
+### 4. Error Responses
+
+* **Workspace not found (`404 Not Found`):**
+  ```json
+  {
+    "error": "Not Found",
+    "status": 404,
+    "message": "Workspace not found with id: missing-id",
+    "path": "/api/v1/workspaces/missing-id",
+    "timestamp": "2026-11-03T13:40:05Z"
+  }
+  ```
+* **Cross-workspace access denied (`403 Forbidden`):**
+  ```json
+  {
+    "error": "Forbidden",
+    "status": 403,
+    "message": "You do not have permission to access workspace: other-user-workspace",
+    "path": "/api/v1/workspaces/other-user-workspace",
+    "timestamp": "2026-11-03T13:40:10Z"
+  }
+  ```
+* **Validation error (`400 Bad Request`):**
+  ```json
+  {
+    "error": "Validation Failed",
+    "status": 400,
+    "message": "Input validation failed. Please check field errors.",
+    "path": "/api/v1/workspaces",
+    "timestamp": "2026-11-03T13:40:15Z",
+    "validationErrors": {
+      "name": "Workspace name cannot be blank"
+    }
+  }
+  ```
 
 ---
 
-## Security Invariants
+## Required Firestore Indexes
 
-| Invariant | Implementation |
-|---|---|
-| Token trust | UID extracted **only** from server-verified `FirebaseToken`, never from client input |
-| Statelessness | No HTTP sessions or cookies; every request carries its own ID token |
-| Secrets hygiene | `GOOGLE_APPLICATION_CREDENTIALS` env var only; no credentials in version control |
-| `.gitignore` | Service-account JSON patterns, `.env`, `.pem`, `.p12` blocked |
-| Graceful degradation | App boots without Firebase credentials; only Firebase-backed routes fail |
-| CORS | Explicitly configured per environment; preflight cached |
-| CSRF | Disabled (REST API, stateless Bearer token) |
+For listing workspaces across team memberships, Cloud Firestore supports single-field collection-group queries:
+* **Collection Group:** `members`
+* **Field:** `uid` (Ascending)
+* **Scope:** Collection Group
+
+*Note:* If the collection group index is pending, the backend automatically falls back to direct `ownerUid` queries on the `workspaces` collection without crashing.
+
+---
+
+## Running Automated Tests & Build
+
+```bash
+# Set Java 21 LTS
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+
+# Run complete test suite (48 tests, zero real Firebase credentials needed)
+mvn test
+
+# Clean compile and package executable Spring Boot JAR
+mvn clean test package
+```
+
+### Test Suite Breakdown (48 tests passing)
+
+| Test Class | Tests | Focus Area |
+|---|---|---|
+| `WorkspaceControllerTest` | 13 | Endpoint contracts, validation, 201/200/400/401/403/404, spoofing prevention |
+| `WorkspaceServiceTest` | 9 | Business logic, default currency, owner assignment, access-control rules |
+| `FirestoreWorkspaceRepositoryTest` | 5 | Atomic batch writes, document mapping, database exception handling |
+| `AuthControllerTest` | 10 | Token extraction, expiry, invalid tokens, CORS preflight |
+| `GlobalExceptionHandlerTest` | 6 | Validation mapping, 400, 401, 403, 404, 500 error sanitization |
+| `HealthControllerTest` | 4 | Public health probe and JSON structure |
+| `BusinessOpsApplicationTests` | 1 | Spring application context startup smoke test |
+
+---
+
+## Running the Application Locally
+
+```bash
+# 1. Set Firebase Admin credentials (outside repo)
+export GOOGLE_APPLICATION_CREDENTIALS="/path/to/serviceAccountKey.json"
+
+# 2. Run Spring Boot
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+mvn spring-boot:run
+```
+
+Server runs on: **`http://localhost:8080`**.
+
+---
+
+## Contributing & Security Guidelines
+
+* Never commit service-account JSON keys, `.env` files, or private keys.
+* Never trust client-supplied identity parameters (`uid`, `ownerUid`, `role`).
+* Keep all business records strictly partitioned by workspace document IDs.
 
 ---
 

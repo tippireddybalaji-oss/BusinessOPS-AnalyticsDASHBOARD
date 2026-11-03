@@ -134,7 +134,45 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles route / resource not found (404).
+     * Handles domain workspace access denied (403 Forbidden).
+     */
+    @ExceptionHandler(WorkspaceAccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> handleWorkspaceAccessDenied(
+            WorkspaceAccessDeniedException ex,
+            HttpServletRequest request) {
+
+        log.warn("Workspace access denied on {}: {}", request.getRequestURI(), ex.getMessage());
+
+        ApiErrorResponse body = ApiErrorResponse.of(
+                HttpStatus.FORBIDDEN.value(),
+                "Forbidden",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    /**
+     * Handles domain resource not found (404 Not Found).
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleResourceNotFound(
+            ResourceNotFoundException ex,
+            HttpServletRequest request) {
+
+        log.warn("Resource not found on {}: {}", request.getRequestURI(), ex.getMessage());
+
+        ApiErrorResponse body = ApiErrorResponse.of(
+                HttpStatus.NOT_FOUND.value(),
+                "Not Found",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    /**
+     * Handles route / static resource not found (404).
      */
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFound(
@@ -204,6 +242,25 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    /**
+     * Handles database operation failures (500).
+     */
+    @ExceptionHandler(DatabaseOperationException.class)
+    public ResponseEntity<ApiErrorResponse> handleDatabaseOperation(
+            DatabaseOperationException ex,
+            HttpServletRequest request) {
+
+        log.error("Database operation failed on {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+
+        ApiErrorResponse body = ApiErrorResponse.of(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Internal Server Error",
+                "A database error occurred while processing your request. Please try again later.",
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 
     /**
