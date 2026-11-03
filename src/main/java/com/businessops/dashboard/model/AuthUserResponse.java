@@ -16,3 +16,4 @@ package com.businessops.dashboard.model;
  */
 public record AuthUserResponse(String uid, String email) {
 }
+

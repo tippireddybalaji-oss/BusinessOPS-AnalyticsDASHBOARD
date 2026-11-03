@@ -17,24 +17,28 @@ analytics platform built on:
 | Authentication | Firebase Authentication (ID token verification) |
 | Database | Cloud Firestore |
 | Firebase SDK | Firebase Admin SDK 9.4.1 for Java |
-| Security | Spring Security (stateless, token-based) |
-| Frontend *(Phase 3+)* | HTML5, CSS3, Vanilla JavaScript, Chart.js |
+| Security | Spring Security (stateless, token-based, CORS-configured) |
+| Error Handling | Centralized `@RestControllerAdvice` (`ApiErrorResponse`) |
+| Frontend *(Phase 3+)* | HTML5, CSS3, Vanilla JavaScript (ES6+), Chart.js |
 
 ---
 
 ## Project Phases
 
 - [x] **Phase 1 – Backend foundation** — Maven / Spring Boot scaffold, health endpoint, tests
-- [x] **Phase 2 – Firebase Auth + Firestore integration** ← *current*
+- [x] **Phase 2 – Firebase Auth + Firestore integration**
   - Firebase Admin SDK initialised via Application Default Credentials
-  - Spring Security filter that verifies Firebase ID tokens server-side
-  - `GET /api/auth/me` — authenticated identity endpoint
+  - Spring Security filter verifying Firebase ID tokens server-side
+  - Standardized `GET /api/v1/me` (and `GET /api/auth/me`) identity endpoints
+  - Centralized exception handling with `GlobalExceptionHandler` and `ApiErrorResponse`
+  - Configurable CORS support (development origins + production override)
   - Reusable `FirebaseAuth` and `Firestore` Spring beans
-  - Full test suite (10 tests, all passing, no real credentials required)
-- [ ] Phase 3 – Frontend (HTML5 / JS / Chart.js)
-- [ ] Phase 4 – Client management & transactions API
-- [ ] Phase 5 – Analytics engine & dashboard charts
-- [ ] Phase 6 – SaaS multi-tenancy & billing
+  - Comprehensive automated test suite with zero external credential dependencies
+- [ ] Phase 3 – Frontend (HTML5 / CSS3 / Vanilla JS / Chart.js)
+- [ ] Phase 4 – Workspace model & access control
+- [ ] Phase 5 – Client management & transactions API
+- [ ] Phase 6 – Analytics engine & dashboard charts
+- [ ] Phase 7 – SaaS multi-tenancy & billing
 
 ---
 
@@ -51,27 +55,31 @@ BusinessOPS-AnalyticsDASHBOARD/
     │   │   ├── BusinessOpsApplication.java       ← entry point
     │   │   ├── config/
     │   │   │   ├── FirebaseConfig.java            ← FirebaseApp + FirebaseAuth + Firestore beans
-    │   │   │   └── SecurityConfig.java            ← Spring Security rules
+    │   │   │   └── SecurityConfig.java            ← Spring Security + CORS rules
     │   │   ├── controller/
-    │   │   │   ├── AuthController.java            ← GET /api/auth/me (protected)
+    │   │   │   ├── AuthController.java            ← GET /api/v1/me (and legacy /api/auth/me)
     │   │   │   └── HealthController.java          ← GET /api/health (public)
     │   │   ├── exception/
-    │   │   │   └── FirebaseAuthenticationException.java
+    │   │   │   ├── FirebaseAuthenticationException.java
+    │   │   │   └── GlobalExceptionHandler.java    ← Centralized @RestControllerAdvice
     │   │   ├── model/
+    │   │   │   ├── ApiErrorResponse.java          ← Standardized REST error payload
     │   │   │   ├── AuthUserResponse.java          ← {uid, email} record
     │   │   │   └── HealthResponse.java            ← {status, application} record
-    │   │   ├── repository/                        ← (reserved for Firestore repos – Phase 4)
+    │   │   ├── repository/                        ← (reserved for Firestore repos)
     │   │   ├── security/
     │   │   │   └── FirebaseAuthFilter.java        ← Bearer token extraction & verification
-    │   │   └── service/                           ← (reserved for business logic – Phase 4)
+    │   │   └── service/                           ← (reserved for business logic)
     │   └── resources/
     │       └── application.properties
     └── test/
         ├── java/com/businessops/dashboard/
         │   ├── BusinessOpsApplicationTests.java   ← full context smoke test
-        │   └── controller/
-        │       ├── AuthControllerTest.java        ← 5 tests (mocked FirebaseAuth)
-        │       └── HealthControllerTest.java      ← 4 tests (public access verified)
+        │   ├── controller/
+        │   │   ├── AuthControllerTest.java        ← 10 tests (auth, expiration, spoofing, CORS)
+        │   │   └── HealthControllerTest.java      ← 4 tests (public health probe)
+        │   └── exception/
+        │       └── GlobalExceptionHandlerTest.java← 6 tests (validation, 401, 403, 500)
         └── resources/
             └── application-test.properties
 ```
@@ -98,13 +106,11 @@ BusinessOPS-AnalyticsDASHBOARD/
 
 ### 1. Create a Firebase project
 
-Go to [console.firebase.google.com](https://console.firebase.google.com) and
-create or select a project.
+Go to [console.firebase.google.com](https://console.firebase.google.com) and create or select a project.
 
 ### 2. Enable Firebase Authentication
 
-In the console: **Authentication → Sign-in method** → enable the providers you need
-(e.g. Email/Password, Google).
+In the console: **Authentication → Sign-in method** → enable the providers you need (e.g. Email/Password, Google).
 
 ### 3. Generate a service-account key
 
@@ -122,8 +128,7 @@ export GOOGLE_APPLICATION_CREDENTIALS="/absolute/path/to/serviceAccountKey.json"
 
 Add this line to `~/.zshrc` (or `~/.bashrc`) to make it permanent.
 
-The Firebase Admin SDK reads this environment variable automatically — no path
-needs to be written into `application.properties`.
+The Firebase Admin SDK reads this environment variable automatically — no path needs to be written into `application.properties`.
 
 ---
 
@@ -150,100 +155,107 @@ The server starts on **http://localhost:8080**.
 
 ## API Endpoints
 
-### Public (no authentication required)
+### Public Endpoints (no authentication required)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/health` | Service liveness check |
+| `GET` | `/api/health` | Service liveness probe |
+| `OPTIONS` | `/**` | CORS preflight checks |
 
 ```bash
 curl -s http://localhost:8080/api/health
 # {"status":"UP","application":"BusinessOPS and analyticsDASHBOARD"}
 ```
 
-### Protected (Firebase ID token required)
+### Protected Endpoints (Firebase ID token required)
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/auth/me` | Returns the verified caller's UID and email |
-
-#### How to get a Firebase ID token (for manual testing)
-
-In any Firebase-enabled client (web, Android, iOS) or via the Firebase REST API:
-
-```bash
-# Firebase REST Auth API – Email/Password sign-in
-curl -s -X POST \
-  "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=YOUR_WEB_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"password","returnSecureToken":true}' \
-  | python3 -m json.tool
-# Copy the value of "idToken"
-```
+| `GET` | `/api/v1/me` | Standardized identity endpoint; returns verified caller's UID and email |
+| `GET` | `/api/auth/me` | Legacy alias for `/api/v1/me` |
 
 #### Test the auth endpoint
 
 ```bash
-ID_TOKEN="<paste-id-token-here>"
+ID_TOKEN="<paste-firebase-id-token-here>"
 
 curl -s \
   -H "Authorization: Bearer $ID_TOKEN" \
-  http://localhost:8080/api/auth/me | python3 -m json.tool
+  http://localhost:8080/api/v1/me | python3 -m json.tool
 # {
 #   "uid": "abc123firebaseUid",
 #   "email": "user@example.com"
 # }
 ```
 
-#### Missing or invalid token → 401
+#### Missing, invalid, or expired token → 401
 
 ```bash
-curl -s http://localhost:8080/api/auth/me
+curl -s http://localhost:8080/api/v1/me
 # {"error":"Authentication required.","status":401}
 ```
 
 ---
 
-## Running Tests
+## Centralized Error Handling
 
-No real Firebase credentials are needed to run the test suite.
-The Firebase beans are mocked in tests.
+All REST exceptions are caught by `GlobalExceptionHandler` and returned as a standardized `ApiErrorResponse` payload:
+
+```json
+{
+  "error": "Validation Failed",
+  "status": 400,
+  "message": "Input validation failed. Please check field errors.",
+  "path": "/api/v1/workspaces",
+  "timestamp": "2026-11-03T13:20:00Z",
+  "validationErrors": {
+    "name": "Workspace name cannot be blank"
+  }
+}
+```
+
+Stack traces and sensitive internal details are never leaked in error messages.
+
+---
+
+## CORS Configuration
+
+Configured in `SecurityConfig` via `app.cors.allowed-origins` in `application.properties`:
+* **Default development origins:** `http://localhost:3000`, `http://127.0.0.1:3000`, `http://localhost:5500`, `http://127.0.0.1:5500`, `http://localhost:8080`, `http://127.0.0.1:8080`
+* **Production override:** Set environment variable `APP_CORS_ALLOWED_ORIGINS="https://dashboard.example.com"`
+* **Allowed HTTP methods:** `GET`, `POST`, `PUT`, `DELETE`, `PATCH`, `OPTIONS`
+* **Allowed headers:** `Authorization`, `Content-Type`, `Accept`, `X-Requested-With`, `Origin`
+* **Pre-flight caching:** 1 hour (`maxAge = 3600`)
+
+---
+
+## Running Tests & Build
 
 ```bash
 export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+
+# Run automated tests
 mvn test
+
+# Package build (creates executable JAR in target/)
+mvn clean package
 ```
 
-### Test results (Phase 2)
-
-```
-Tests run: 10, Failures: 0, Errors: 0, Skipped: 0 — BUILD SUCCESS
-```
-
-| Test class | Tests | What is covered |
-|---|---|---|
-| `HealthControllerTest` | 4 | Public health endpoint, no token required |
-| `AuthControllerTest` | 5 | Missing token → 401, invalid token → 401, valid token → 200 with uid+email, null email, no raw token fields |
-| `BusinessOpsApplicationTests` | 1 | Full Spring context loads with mocked Firebase beans |
+Zero real Firebase credentials are required for running tests; all Firebase components are mocked.
 
 ---
 
-## Security Design
+## Security Invariants
 
-| Concern | Approach |
+| Invariant | Implementation |
 |---|---|
 | Token trust | UID extracted **only** from server-verified `FirebaseToken`, never from client input |
-| Stateless | No HTTP sessions; every request carries its own ID token |
-| Secrets | `GOOGLE_APPLICATION_CREDENTIALS` env var only; no paths in version-controlled files |
-| `.gitignore` | Service-account JSON patterns, `.env`, `.pem`, `.p12` all blocked |
-| Graceful degradation | App starts without Firebase credentials; only Firebase-backed endpoints fail |
-| CSRF | Disabled (REST API, not a browser form) |
-
----
-
-## Contributing
-
-This project is in active development. Pull requests and issue reports are welcome.
+| Statelessness | No HTTP sessions or cookies; every request carries its own ID token |
+| Secrets hygiene | `GOOGLE_APPLICATION_CREDENTIALS` env var only; no credentials in version control |
+| `.gitignore` | Service-account JSON patterns, `.env`, `.pem`, `.p12` blocked |
+| Graceful degradation | App boots without Firebase credentials; only Firebase-backed routes fail |
+| CORS | Explicitly configured per environment; preflight cached |
+| CSRF | Disabled (REST API, stateless Bearer token) |
 
 ---
 

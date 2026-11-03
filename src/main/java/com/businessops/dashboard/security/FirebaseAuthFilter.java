@@ -136,3 +136,4 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
         response.getWriter().write(body);
     }
 }
+

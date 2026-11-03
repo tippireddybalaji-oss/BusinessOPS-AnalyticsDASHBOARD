@@ -17,3 +17,4 @@ public class FirebaseAuthenticationException extends RuntimeException {
         super(message, cause);
     }
 }
+
