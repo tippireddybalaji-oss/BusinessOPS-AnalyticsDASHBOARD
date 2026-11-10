@@ -82,8 +82,3 @@ build/
 .playwright-cli/
 output/
 
-# ──────────────────────────────────────────────
-# Audits (tracked only after full development completes)
-# ──────────────────────────────────────────────
-*-AUDIT.md
-
