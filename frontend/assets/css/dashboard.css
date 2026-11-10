@@ -1,0 +1,558 @@
+/**
+ * BusinessOPS Analytics Dashboard - Executive Dashboard Stylesheet
+ * Strict compliance with the BUSINESSOPS UI/UX Design System Directive
+ *
+ * Professional enterprise financial software aesthetic:
+ * Primary: #334B68 | Background: #F5F6F8 | Borders: #E2E6EC
+ */
+
+/* =========================================================================
+   Navigation Links in Header
+   ========================================================================= */
+
+.nav-links-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: var(--space-4);
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.35rem 0.75rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.nav-link:hover {
+  background-color: var(--bg-subtle);
+  color: var(--text-main);
+  text-decoration: none;
+}
+
+.nav-link.active {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* =========================================================================
+   Global Filters Bar
+   ========================================================================= */
+
+.filter-bar-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-5);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.filter-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  margin-right: var(--space-1);
+}
+
+/* Preset Pill Buttons */
+.preset-pills-group {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+}
+
+.filter-pill-btn {
+  padding: 0.3rem 0.65rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius-md) - 2px);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.filter-pill-btn:hover {
+  color: var(--text-main);
+}
+
+.filter-pill-btn.active {
+  background-color: var(--bg-surface);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Custom Date Range Controls */
+.custom-range-container {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.custom-date-input {
+  padding: 0.3rem 0.5rem;
+  font-size: var(--font-size-xs);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  background-color: var(--bg-surface);
+}
+
+.custom-date-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+/* Secondary Controls (Currency, Pending) */
+.filter-secondary-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.currency-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.currency-select {
+  padding: 0.35rem 0.65rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  background-color: var(--bg-surface);
+  cursor: pointer;
+}
+
+.currency-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.pending-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-main);
+  user-select: none;
+}
+
+.pending-checkbox {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+/* =========================================================================
+   Executive KPI Summary Cards
+   ========================================================================= */
+
+.kpi-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.kpi-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.kpi-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.kpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.kpi-title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.kpi-icon-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+
+.kpi-icon-badge.revenue {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.kpi-icon-badge.expense {
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.kpi-icon-badge.profit {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.kpi-value {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: var(--space-1);
+}
+
+.kpi-value.positive {
+  color: var(--color-success);
+}
+
+.kpi-value.negative {
+  color: var(--color-danger);
+}
+
+.kpi-subtext {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.kpi-subtext .pipeline-highlight {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* =========================================================================
+   Chart Sections & Layout
+   ========================================================================= */
+
+.dashboard-section-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+  margin-bottom: var(--space-6);
+}
+
+.section-card-header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background-color: var(--bg-surface);
+}
+
+.section-header-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+}
+
+.section-header-desc {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.chart-controls-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+}
+
+.trends-chart-wrapper {
+  height: 340px;
+}
+
+/* =========================================================================
+   Two-Column Analytics Grid (Categories & Clients)
+   ========================================================================= */
+
+.analytics-two-col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+/* Category Analytics Layout */
+.category-chart-split {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.donut-chart-container {
+  height: 220px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Breakdown Table */
+.data-table-container {
+  width: 100%;
+  overflow-x: auto;
+  border-top: 1px solid var(--border-color);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+  text-align: left;
+}
+
+.data-table th {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-semibold);
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.data-table tr:hover td {
+  background-color: var(--bg-page);
+}
+
+.color-indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  display: inline-block;
+  margin-right: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* Client Leaderboard Layout */
+.leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) 0;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color var(--transition-fast);
+}
+
+.leaderboard-item:last-child {
+  border-bottom: none;
+}
+
+.leaderboard-item:hover {
+  background-color: var(--bg-page);
+}
+
+.rank-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--space-3);
+  flex-shrink: 0;
+}
+
+.rank-badge.top-1 {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-subtle);
+}
+
+.client-meta-info {
+  flex: 1;
+  min-width: 0;
+  padding-right: var(--space-4);
+}
+
+.client-name-text {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.client-contribution-bar-bg {
+  width: 100%;
+  height: 4px;
+  background-color: var(--bg-subtle);
+  border-radius: var(--radius-xs);
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.client-contribution-bar-fill {
+  height: 100%;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-xs);
+  transition: width 300ms ease;
+}
+
+.client-financial-stats {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.client-revenue-stat {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+}
+
+.client-substat {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 1px;
+}
+
+/* Unassigned Revenue Callout */
+.unassigned-revenue-callout {
+  padding: var(--space-3) var(--space-5);
+  background-color: var(--bg-subtle);
+  border-top: 1px solid var(--border-color);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.unassigned-revenue-callout strong {
+  color: var(--text-main);
+}
+
+/* =========================================================================
+   Safeguard Error & Incomplete Status Banners
+   ========================================================================= */
+
+.safeguard-banner {
+  background-color: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-warning-text);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+/* =========================================================================
+   Responsive Design Breakpoints
+   ========================================================================= */
+
+@media (max-width: 1024px) {
+  .analytics-two-col-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-bar-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .preset-pills-group {
+    flex-wrap: wrap;
+  }
+
+  .filter-secondary-group {
+    width: 100%;
+    justify-content: space-between;
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--space-3);
+  }
+
+  .trends-chart-wrapper {
+    height: 280px;
+  }
+}
+

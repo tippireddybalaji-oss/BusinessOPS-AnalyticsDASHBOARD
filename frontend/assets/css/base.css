@@ -1,0 +1,335 @@
+/**
+ * BusinessOPS Analytics Dashboard - Base Styles & Layout Resets
+ * Strict compliance with the BUSINESSOPS UI/UX Design System Directive
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--text-main);
+  background-color: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* Accessible Focus States (WCAG 2.1 AA) */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Skip Navigation Link for Keyboard & Screen Reader Accessibility */
+.skip-link {
+  position: absolute;
+  top: -9999px;
+  left: var(--space-4);
+  background: var(--color-primary);
+  color: var(--text-inverse);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  z-index: 1000;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  box-shadow: var(--shadow-md);
+  transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+  top: var(--space-4);
+  outline: 2px solid var(--bg-surface);
+  outline-offset: 2px;
+}
+
+/* Screen Reader Only Utility */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Typography Hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  color: var(--text-main);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+h1 { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); }
+h2 { font-size: var(--font-size-xl); }
+h3 { font-size: var(--font-size-lg); }
+h4 { font-size: var(--font-size-base); }
+
+p {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+/* =========================================================================
+   Standardized Lucide Iconography
+   ========================================================================= */
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 1.75;
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+.icon-xs { width: 0.75rem; height: 0.75rem; }
+.icon-sm { width: 0.875rem; height: 0.875rem; }
+.icon-md { width: 1.125rem; height: 1.125rem; }
+.icon-lg { width: 1.25rem; height: 1.25rem; }
+.icon-xl { width: 1.5rem; height: 1.5rem; }
+
+/* =========================================================================
+   Application Shell Layout
+   ========================================================================= */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  height: 60px;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-6);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  box-shadow: var(--shadow-xs);
+}
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.brand-logo-icon {
+  width: 32px;
+  height: 32px;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-inverse);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+  box-shadow: var(--shadow-xs);
+}
+
+.brand-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+}
+
+.brand-title span {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.user-profile-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.user-avatar-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xs);
+  border: 1px solid var(--color-primary-subtle);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.user-name {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+}
+
+.user-email {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* Main Content Container */
+.app-main {
+  flex: 1;
+  padding: var(--space-6) var(--space-6);
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* =========================================================================
+   Layout Utilities
+   ========================================================================= */
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.d-flex { display: flex; }
+.d-none { display: none !important; }
+.flex-column { flex-direction: column; }
+.align-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-1 { gap: var(--space-1); }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+.mt-2 { margin-top: var(--space-2); }
+.mt-4 { margin-top: var(--space-4); }
+.mb-2 { margin-bottom: var(--space-2); }
+.mb-4 { margin-bottom: var(--space-4); }
+.mb-6 { margin-bottom: var(--space-6); }
+.ml-2 { margin-left: var(--space-2); }
+.ml-4 { margin-left: var(--space-4); }
+.mr-2 { margin-right: var(--space-2); }
+.mr-4 { margin-right: var(--space-4); }
+
+/* Common Page Header */
+.page-header {
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--space-6);
+}
+
+.page-header h1 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.page-header p {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-top: var(--space-1);
+  margin-bottom: 0;
+}
+
+/* =========================================================================
+   Application Header Responsive Breakpoints
+   ========================================================================= */
+
+@media (max-width: 1024px) {
+  .app-header {
+    height: auto;
+    min-height: 56px;
+    padding: var(--space-2) var(--space-4);
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .brand-wrapper {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .nav-links-group {
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-left: var(--space-2);
+  }
+
+  .user-email {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .user-info {
+    display: none;
+  }
+
+  .nav-links-group {
+    overflow-x: auto;
+    max-width: 100%;
+    padding-bottom: 2px;
+  }
+}

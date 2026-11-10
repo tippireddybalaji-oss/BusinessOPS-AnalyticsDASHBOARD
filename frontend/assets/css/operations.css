@@ -1,0 +1,27 @@
+/* Client and transaction operations views. Uses only established design tokens. */
+.operations-toolbar { display:flex; flex-wrap:wrap; align-items:end; justify-content:space-between; gap:var(--space-3); margin-bottom:var(--space-5); }
+.operations-filters { display:flex; flex:1; flex-wrap:wrap; align-items:end; gap:var(--space-3); }
+.operations-filter { min-width:150px; flex:0 1 190px; }
+.operations-filter.search { min-width:230px; flex:1 1 260px; }
+.operations-card { background:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-lg); box-shadow:var(--shadow-xs); overflow:hidden; }
+.operations-card-header { padding:var(--space-4) var(--space-5); border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; gap:var(--space-3); }
+.operations-card-header h2 { font-size:var(--font-size-base); }
+.operations-count { font-size:var(--font-size-xs); color:var(--text-secondary); }
+.operations-table-actions { display:flex; justify-content:flex-end; gap:var(--space-1); }
+.operations-empty { padding:var(--space-8) var(--space-4); text-align:center; color:var(--text-secondary); display:flex; flex-direction:column; align-items:center; }
+.operations-empty h3 { font-size:var(--font-size-base); color:var(--text-main); margin-top:var(--space-2); }
+.operations-empty p { margin:var(--space-1) 0 0; font-size:var(--font-size-sm); max-width:440px; }
+.operations-empty .empty-action { margin-top:var(--space-4); }
+.pagination { padding:var(--space-3) var(--space-5); border-top:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; gap:var(--space-3); font-size:var(--font-size-xs); color:var(--text-secondary); }
+.pagination-controls { display:flex; gap:var(--space-2); }
+.modal.modal-wide { max-width:720px; }
+.modal .card-header { padding:var(--space-4) var(--space-5); border-bottom:1px solid var(--border-color); display:flex; align-items:center; justify-content:space-between; }
+.modal .card-body { padding:var(--space-5); }
+.modal .card-footer { padding:var(--space-4) var(--space-5); border-top:1px solid var(--border-color); display:flex; justify-content:flex-end; gap:var(--space-2); }
+.form-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:0 var(--space-4); }
+.form-grid .form-group.full-width { grid-column:1 / -1; }
+.form-textarea { min-height:82px; resize:vertical; }
+.amount-income { color:var(--color-success-text); font-weight:var(--font-weight-semibold); }
+.amount-expense { color:var(--color-danger-text); font-weight:var(--font-weight-semibold); }
+.status-cell { display:inline-flex; }
+@media (max-width:768px) { .operations-toolbar { align-items:stretch; } .operations-toolbar > .btn { width:100%; } .operations-filter, .operations-filter.search { flex:1 1 100%; } .form-grid { grid-template-columns:1fr; } .pagination { align-items:flex-start; flex-direction:column; } .operations-card-header { align-items:flex-start; flex-direction:column; } }

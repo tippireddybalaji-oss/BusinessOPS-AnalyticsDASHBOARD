@@ -14,6 +14,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -108,6 +109,33 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getBody().status()).isEqualTo(400);
         assertThat(response.getBody().error()).isEqualTo("Invalid Argument");
         assertThat(response.getBody().message()).isEqualTo("Amount must be positive");
+    }
+
+    @Test
+    @DisplayName("AnalyticsProcessingLimitException maps to 422 UNPROCESSABLE_ENTITY with limitDetails payload")
+    void handleAnalyticsProcessingLimit_returns422WithLimitDetails() {
+        AnalyticsProcessingLimitException ex = new AnalyticsProcessingLimitException(
+                LimitSafeguardType.PREFLIGHT_COUNT_SAFEGUARD,
+                0L,
+                24500L
+        );
+
+        ResponseEntity<Map<String, Object>> response = exceptionHandler.handleAnalyticsProcessingLimit(ex, request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().get("status")).isEqualTo(422);
+        assertThat(response.getBody().get("error")).isEqualTo("Unprocessable Content");
+        assertThat(response.getBody().get("errorCode")).isEqualTo("ANALYTICS_PROCESSING_LIMIT_EXCEEDED");
+        assertThat(response.getBody().get("path")).isEqualTo("/api/test/resource");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> details = (Map<String, Object>) response.getBody().get("limitDetails");
+        assertThat(details).isNotNull();
+        assertThat(details.get("enforcementTier")).isEqualTo("PREFLIGHT_COUNT_SAFEGUARD");
+        assertThat(details.get("maxAllowedCount")).isEqualTo(10000);
+        assertThat(details.get("totalEligibleCount")).isEqualTo(24500L);
+        assertThat(details.get("observedMatchingCountLowerBound")).isNull();
     }
 
     @Test

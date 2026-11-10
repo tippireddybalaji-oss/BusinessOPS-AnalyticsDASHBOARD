@@ -58,3 +58,4 @@ public interface ClientRepository {
      */
     boolean deleteClient(String workspaceId, String clientId);
 }
+

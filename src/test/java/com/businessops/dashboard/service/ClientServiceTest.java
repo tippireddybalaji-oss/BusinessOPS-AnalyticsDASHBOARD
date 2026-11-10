@@ -241,3 +241,4 @@ class ClientServiceTest {
         verify(clientRepository, never()).deleteClient(any(), any());
     }
 }
+

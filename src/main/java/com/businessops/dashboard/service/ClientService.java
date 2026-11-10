@@ -172,3 +172,4 @@ public class ClientService {
         log.info("Client deleted: id='{}' from workspace='{}' by user='{}'", clientId, workspaceId, authenticatedUid);
     }
 }
+

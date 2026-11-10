@@ -231,3 +231,4 @@ public class FirestoreClientRepository implements ClientRepository {
         return client;
     }
 }
+

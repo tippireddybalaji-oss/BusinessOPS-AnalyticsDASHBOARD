@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BusinessOPS &bull; Enterprise Operations &amp; Analytics</title>
+  <link rel="stylesheet" href="assets/css/variables.css" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <script src="assets/js/lucide.min.js"></script>
+  <style>
+    .loading-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: var(--space-6);
+      background-color: var(--bg-page);
+    }
+    .brand-icon-box {
+      width: 44px;
+      height: 44px;
+      background-color: var(--color-primary);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-inverse);
+      box-shadow: var(--shadow-xs);
+      margin-bottom: var(--space-4);
+    }
+  </style>
+</head>
+<body>
+  <div class="loading-screen">
+    <div class="brand-icon-box" aria-hidden="true">
+      <i data-lucide="bar-chart-3" class="icon icon-lg" style="color:var(--text-inverse);"></i>
+    </div>
+    <h2 style="font-size:var(--font-size-lg);font-weight:600;margin-bottom:var(--space-2);color:var(--text-main);">BusinessOPS Analytics</h2>
+    <p style="font-size:var(--font-size-xs);color:var(--text-secondary);display:flex;align-items:center;gap:8px;">
+      <span class="spinner" style="width:14px;height:14px;" aria-hidden="true"></span>
+      Initializing session &amp; workspaces...
+    </p>
+  </div>
+
+  <script type="module">
+    import { initAuth } from "./assets/js/auth.js";
+    import { getActiveWorkspaceId } from "./assets/js/workspace.js";
+
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons();
+    }
+
+    initAuth((user) => {
+      if (!user) {
+        window.location.replace("login.html");
+      } else {
+        const activeId = getActiveWorkspaceId();
+        if (activeId) {
+          window.location.replace("dashboard.html");
+        } else {
+          window.location.replace("workspaces.html");
+        }
+      }
+    });
+  </script>
+</body>
+</html>

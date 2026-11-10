@@ -200,3 +200,4 @@ class FirestoreClientRepositoryTest {
                 .hasMessageContaining("Firestore client is unconfigured");
     }
 }
+

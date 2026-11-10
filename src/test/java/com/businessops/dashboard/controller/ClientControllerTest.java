@@ -319,3 +319,4 @@ class ClientControllerTest {
                .andExpect(jsonPath("$.status").value(403));
     }
 }
+

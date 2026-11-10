@@ -1,0 +1,242 @@
+/**
+ * BusinessOPS Analytics Dashboard - Workspaces View Stylesheet
+ * Strict compliance with the BUSINESSOPS UI/UX Design System Directive
+ *
+ * Multi-tenant workspace selector, cards, dropdowns, and creation modal
+ */
+
+/* =========================================================================
+   Identity & Verification Banner
+   ========================================================================= */
+
+.identity-banner {
+  background-color: var(--color-info-bg);
+  border: 1px solid var(--color-info-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-5);
+  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.identity-badge-pill {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  font-weight: var(--font-weight-medium);
+}
+
+/* =========================================================================
+   Workspace Grid
+   ========================================================================= */
+
+.workspaces-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-5);
+}
+
+/* =========================================================================
+   Individual Workspace Card (Clean Enterprise Financial SaaS Design)
+   ========================================================================= */
+
+.workspace-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+}
+
+.workspace-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Active card has clean solid primary border, no neon glowing aura */
+.workspace-card.active {
+  border-color: var(--color-primary);
+  border-width: 1.5px;
+  box-shadow: var(--shadow-xs);
+}
+
+.workspace-card-header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-surface);
+}
+
+.workspace-card-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workspace-card-body {
+  padding: var(--space-5);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.workspace-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+}
+
+.workspace-meta-label {
+  color: var(--text-secondary);
+}
+
+.workspace-meta-value {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-main);
+}
+
+.tenant-id-pill {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-color);
+}
+
+.workspace-card-footer {
+  padding: var(--space-3) var(--space-5);
+  background-color: var(--bg-subtle);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* =========================================================================
+   Header Workspace Switcher Dropdown
+   ========================================================================= */
+
+.workspace-switcher-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+#ws-switcher-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+#ws-switcher-btn:hover {
+  background-color: var(--bg-subtle);
+  border-color: var(--border-hover);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-success);
+  display: inline-block;
+}
+
+/* =========================================================================
+   Empty State Card (No Emojis, Clean Lucide SVG Icon)
+   ========================================================================= */
+
+.empty-state-card {
+  background-color: var(--bg-surface);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--space-10) var(--space-6);
+  text-align: center;
+}
+
+.empty-state-icon {
+  margin-bottom: var(--space-3);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state-card h2 {
+  font-size: var(--font-size-lg);
+  color: var(--text-main);
+  margin-bottom: var(--space-2);
+}
+
+.empty-state-card p {
+  max-width: 440px;
+  margin: 0 auto var(--space-5) auto;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* =========================================================================
+   Responsive Overrides
+   ========================================================================= */
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 var(--space-4);
+    height: auto;
+    min-height: 56px;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+  }
+
+  .header-actions {
+    gap: var(--space-2);
+  }
+
+  .user-info {
+    display: none;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .identity-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .workspaces-grid {
+    grid-template-columns: 1fr;
+  }
+}

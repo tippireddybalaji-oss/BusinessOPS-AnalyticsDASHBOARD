@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard &bull; BusinessOPS and analyticsDASHBOARD</title>
+  <link rel="stylesheet" href="assets/css/variables.css" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/workspaces.css" />
+  <link rel="stylesheet" href="assets/css/dashboard.css" />
+  <script src="assets/js/chart.umd.min.js"></script>
+  <script src="assets/js/lucide.min.js"></script>
+</head>
+<body class="app-shell">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <!-- Application Navigation Header -->
+  <header class="app-header">
+    <div class="brand-wrapper">
+      <div class="brand-logo-icon" aria-hidden="true">
+        <i data-lucide="layout-grid" class="icon icon-sm" style="color:var(--text-inverse);"></i>
+      </div>
+      <div class="brand-title">Business<span>OPS</span></div>
+
+      <!-- Main Navigation Menu -->
+      <nav class="nav-links-group" aria-label="Main Navigation">
+        <a href="dashboard.html" class="nav-link active">
+          <i data-lucide="bar-chart-3" class="icon icon-xs"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="clients.html" class="nav-link">
+          <i data-lucide="users" class="icon icon-xs"></i>
+          <span>Clients</span>
+        </a>
+        <a href="transactions.html" class="nav-link">
+          <i data-lucide="receipt-text" class="icon icon-xs"></i>
+          <span>Transactions</span>
+        </a>
+        <a href="workspaces.html" class="nav-link">
+          <i data-lucide="briefcase" class="icon icon-xs"></i>
+          <span>Workspaces</span>
+        </a>
+      </nav>
+
+      <!-- Multi-Tenant Workspace Selector -->
+      <div id="nav-workspace-switcher" class="ml-4"></div>
+    </div>
+
+    <div class="header-actions">
+      <div class="user-profile-menu">
+        <div id="user-avatar" class="user-avatar-badge" aria-hidden="true">U</div>
+        <div class="user-info">
+          <span id="user-display-name" class="user-name">Loading...</span>
+          <span id="user-display-email" class="user-email">...</span>
+        </div>
+      </div>
+      <button id="logout-btn" class="btn btn-secondary btn-sm" style="gap:6px;">
+        <i data-lucide="log-out" class="icon icon-xs"></i>
+        <span>Sign Out</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Analytics Workspace View -->
+  <main class="app-main" id="main-content">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-between align-center mb-4">
+      <div>
+        <h1>Executive Financial Dashboard</h1>
+        <p>Real-time cash flow, revenue trends, category breakdown, and client performance.</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="dashboard-refresh-spinner" class="spinner d-none" aria-label="Loading analytics data"></span>
+      </div>
+    </div>
+
+    <!-- Processing Limit / Safeguard Warning Alert -->
+    <div id="safeguard-alert-banner" class="safeguard-banner d-none" role="alert">
+      <i data-lucide="alert-triangle" class="icon icon-sm" style="flex-shrink:0;margin-top:2px;"></i>
+      <div>
+        <strong>Query Safeguard Active:</strong>
+        <span class="safeguard-message">Processing limit reached. Please select a narrower date range to view complete analytics.</span>
+      </div>
+    </div>
+
+    <!-- Global Analytics Filter Bar -->
+    <section class="filter-bar-card" aria-label="Dashboard Filters">
+      <div class="filter-group">
+        <span class="filter-label">Period:</span>
+        <div class="preset-pills-group" role="group" aria-label="Date Range Presets">
+          <button type="button" class="filter-pill-btn active" data-preset="THIS_MONTH">This Month</button>
+          <button type="button" class="filter-pill-btn" data-preset="LAST_30_DAYS">Last 30 Days</button>
+          <button type="button" class="filter-pill-btn" data-preset="QUARTER_TO_DATE">Quarter-to-Date</button>
+          <button type="button" class="filter-pill-btn" data-preset="YEAR_TO_DATE">Year-to-Date</button>
+          <button type="button" class="filter-pill-btn" data-preset="ALL_TIME">All Time</button>
+          <button type="button" class="filter-pill-btn" data-preset="CUSTOM">Custom</button>
+        </div>
+
+        <!-- Custom Date Range Inputs -->
+        <div id="custom-date-controls" class="custom-range-container d-none">
+          <input type="date" id="custom-start-date" class="custom-date-input" aria-label="Start date" />
+          <span style="color:var(--text-secondary);font-size:11px;">to</span>
+          <input type="date" id="custom-end-date" class="custom-date-input" aria-label="End date" />
+          <button type="button" id="custom-apply-btn" class="btn btn-primary btn-sm">Apply</button>
+        </div>
+      </div>
+
+      <div class="filter-secondary-group">
+        <!-- Currency Selector -->
+        <div class="currency-select-wrapper">
+          <label for="filter-currency-select" class="filter-label">Currency:</label>
+          <select id="filter-currency-select" class="currency-select" aria-label="Reporting Currency">
+            <option value="INR" selected>INR</option>
+          </select>
+        </div>
+
+        <!-- Include Pending Pipeline Toggle -->
+        <label class="pending-toggle-wrapper">
+          <input type="checkbox" id="filter-include-pending" class="pending-checkbox" />
+          <span>Include Pending Pipeline</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- SECTION A: Executive KPI Summary Cards -->
+    <section class="kpi-cards-grid" aria-label="Executive Financial KPIs">
+      <!-- 1. Total Revenue -->
+      <article class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Total Revenue</span>
+          <div class="kpi-icon-badge revenue" aria-hidden="true">
+            <i data-lucide="trending-up" class="icon icon-sm"></i>
+          </div>
+        </div>
+        <div id="kpi-revenue-val" class="kpi-value">0.00</div>
+        <div id="kpi-revenue-sub" class="kpi-subtext">0 payments</div>
+      </article>
+
+      <!-- 2. Total Expenses -->
+      <article class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Total Expenses</span>
+          <div class="kpi-icon-badge expense" aria-hidden="true">
+            <i data-lucide="trending-down" class="icon icon-sm"></i>
+          </div>
+        </div>
+        <div id="kpi-expense-val" class="kpi-value">0.00</div>
+        <div id="kpi-expense-sub" class="kpi-subtext">0 disbursements</div>
+      </article>
+
+      <!-- 3. Net Cash Flow -->
+      <article class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Net Cash Flow</span>
+          <div class="kpi-icon-badge profit" aria-hidden="true">
+            <i data-lucide="dollar-sign" class="icon icon-sm"></i>
+          </div>
+        </div>
+        <div id="kpi-net-val" class="kpi-value">0.00</div>
+        <div id="kpi-net-sub" class="kpi-subtext">Realized net profit</div>
+      </article>
+
+      <!-- 4. Profit Margin -->
+      <article class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Profit Margin</span>
+          <div class="kpi-icon-badge" aria-hidden="true">
+            <i data-lucide="percent" class="icon icon-sm"></i>
+          </div>
+        </div>
+        <div id="kpi-margin-val" class="kpi-value">N/A</div>
+        <div id="kpi-margin-sub" class="kpi-subtext">Net margin on revenue</div>
+      </article>
+
+      <!-- 5. Completed Activity -->
+      <article class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Activity Volume</span>
+          <div class="kpi-icon-badge" aria-hidden="true">
+            <i data-lucide="receipt" class="icon icon-sm"></i>
+          </div>
+        </div>
+        <div id="kpi-tx-val" class="kpi-value">0</div>
+        <div id="kpi-tx-sub" class="kpi-subtext">0 in &bull; 0 out</div>
+      </article>
+    </section>
+
+    <!-- SECTION B: Financial Trends Section -->
+    <section class="dashboard-section-card" aria-label="Financial Trends Time-Series">
+      <div class="section-card-header">
+        <div>
+          <h2 class="section-header-title">Financial Trends</h2>
+          <p class="section-header-desc">Continuous revenue, expense and cash flow history over time.</p>
+        </div>
+        <div class="chart-controls-group">
+          <!-- Monthly vs Yearly interval toggle -->
+          <div class="preset-pills-group" role="group" aria-label="Trend Aggregation Interval">
+            <button type="button" class="filter-pill-btn trends-interval-btn active" data-interval="MONTHLY">Monthly</button>
+            <button type="button" class="filter-pill-btn trends-interval-btn" data-interval="YEARLY">Yearly</button>
+          </div>
+          <!-- Bar vs Line toggle -->
+          <div class="preset-pills-group" role="group" aria-label="Chart Style">
+            <button type="button" class="filter-pill-btn trends-type-btn active" data-type="bar" title="Bar Chart">
+              <i data-lucide="bar-chart-2" class="icon icon-xs"></i>
+            </button>
+            <button type="button" class="filter-pill-btn trends-type-btn" data-type="line" title="Line Chart">
+              <i data-lucide="trending-up" class="icon icon-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-wrapper trends-chart-wrapper" id="trends-chart-container">
+        <canvas id="trends-canvas" role="img" aria-label="Financial trends chart displaying continuous revenue, expenses, and net cash flow"></canvas>
+        <div id="trends-empty-state" class="empty-state-card d-none" style="padding:var(--space-8) var(--space-4);border:none;">
+          <i data-lucide="bar-chart" class="icon icon-lg" style="color:var(--text-secondary);margin-bottom:8px;"></i>
+          <h3 style="font-size:var(--font-size-sm);color:var(--text-main);margin-bottom:4px;">No Trend Data Available</h3>
+          <p style="font-size:var(--font-size-xs);color:var(--text-secondary);">No transaction records found for the selected time period or currency.</p>
+          <button type="button" id="trends-reset-filter-btn" class="btn btn-secondary btn-sm" style="margin-top:12px;">Reset to All Time</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTIONS C & D: Two-Column Analytics Grid -->
+    <div class="analytics-two-col-grid">
+      <!-- SECTION C: Category Analytics -->
+      <section class="dashboard-section-card" aria-label="Category Distribution Analytics">
+        <div class="section-card-header">
+          <div>
+            <h2 class="section-header-title">Category Distribution</h2>
+            <div id="category-period-total" class="section-header-desc">Total: 0.00</div>
+          </div>
+          <!-- Income vs Expense Category Toggle -->
+          <div class="preset-pills-group" role="group" aria-label="Category Type Filter">
+            <button type="button" class="filter-pill-btn category-type-btn active" data-type="EXPENSE">Expenses</button>
+            <button type="button" class="filter-pill-btn category-type-btn" data-type="INCOME">Income</button>
+          </div>
+        </div>
+
+        <div class="category-chart-split">
+          <!-- Interactive Doughnut Chart -->
+          <div class="donut-chart-container" style="padding:var(--space-3) var(--space-5);">
+            <canvas id="category-canvas" role="img" aria-label="Category breakdown doughnut chart" aria-describedby="category-table-body"></canvas>
+            <div id="category-empty-state" class="empty-state-card d-none" style="border:none;padding:var(--space-6);">
+              <i data-lucide="pie-chart" class="icon icon-md" style="color:var(--text-secondary);margin-bottom:6px;"></i>
+              <h3 style="font-size:var(--font-size-sm);color:var(--text-main);margin-bottom:4px;">No Category Data</h3>
+              <p style="font-size:var(--font-size-xs);color:var(--text-secondary);">No categorized transactions found for the selected period.</p>
+              <button type="button" id="category-reset-btn" class="btn btn-secondary btn-sm" style="margin-top:10px;">Switch to All Time</button>
+            </div>
+          </div>
+
+          <!-- Corresponding Detailed Breakdown Table -->
+          <div class="data-table-container">
+            <table class="data-table">
+              <caption class="visually-hidden">Category expense and income distribution breakdown</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Category</th>
+                  <th scope="col" style="text-align:right;">Amount</th>
+                  <th scope="col" style="text-align:right;">Share</th>
+                  <th scope="col" style="text-align:right;">Count</th>
+                </tr>
+              </thead>
+              <tbody id="category-table-body">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION D: Client Performance Leaderboard -->
+      <section class="dashboard-section-card" aria-label="Client Revenue Leaderboard">
+        <div class="section-card-header">
+          <div>
+            <h2 class="section-header-title">Client Performance</h2>
+            <p class="section-header-desc">Top revenue contributing client accounts.</p>
+          </div>
+          <span class="badge badge-neutral" style="font-size:11px;">Revenue Ranking</span>
+        </div>
+
+        <div id="client-leaderboard-list" class="leaderboard-list">
+          <!-- Dynamically populated client rows -->
+        </div>
+
+        <div id="client-empty-state" class="empty-state-card d-none" style="border:none;padding:var(--space-8);">
+          <i data-lucide="users" class="icon icon-md" style="color:var(--text-secondary);margin-bottom:6px;"></i>
+          <h3 style="font-size:var(--font-size-sm);color:var(--text-main);margin-bottom:4px;">No Client Revenue</h3>
+          <p style="font-size:var(--font-size-xs);color:var(--text-secondary);">No revenue payments attributed to clients in this period.</p>
+          <a href="clients.html" class="btn btn-secondary btn-sm" style="margin-top:10px;display:inline-flex;">View Clients</a>
+        </div>
+
+        <!-- Unassigned Client Revenue Box -->
+        <div id="client-unassigned-callout" class="unassigned-revenue-callout d-none">
+          <span>Unassigned Client Revenue:</span>
+          <strong id="client-unassigned-amount">0.00</strong>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Dashboard Controller Script -->
+  <script type="module">
+    import { initDashboard } from "./assets/js/dashboard.js";
+    initDashboard();
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workspaces &bull; BusinessOPS and analyticsDASHBOARD</title>
+  <link rel="stylesheet" href="assets/css/variables.css" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/workspaces.css" />
+  <link rel="stylesheet" href="assets/css/dashboard.css" />
+  <script src="assets/js/lucide.min.js"></script>
+</head>
+<body class="app-shell">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <!-- Application Navigation Header -->
+  <header class="app-header">
+    <div class="brand-wrapper">
+      <div class="brand-logo-icon" aria-hidden="true">
+        <i data-lucide="layout-grid" class="icon icon-sm" style="color:var(--text-inverse);"></i>
+      </div>
+      <div class="brand-title">Business<span>OPS</span></div>
+
+      <!-- Main Navigation Menu -->
+      <nav class="nav-links-group" aria-label="Main Navigation">
+        <a href="dashboard.html" class="nav-link">
+          <i data-lucide="bar-chart-3" class="icon icon-xs"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="clients.html" class="nav-link">
+          <i data-lucide="users" class="icon icon-xs"></i>
+          <span>Clients</span>
+        </a>
+        <a href="transactions.html" class="nav-link">
+          <i data-lucide="receipt-text" class="icon icon-xs"></i>
+          <span>Transactions</span>
+        </a>
+        <a href="workspaces.html" class="nav-link active">
+          <i data-lucide="briefcase" class="icon icon-xs"></i>
+          <span>Workspaces</span>
+        </a>
+      </nav>
+
+      <div id="nav-workspace-switcher" class="ml-4"></div>
+    </div>
+
+    <div class="header-actions">
+      <div class="user-profile-menu">
+        <div id="user-avatar" class="user-avatar-badge" aria-hidden="true">U</div>
+        <div class="user-info">
+          <span id="user-display-name" class="user-name">Loading...</span>
+          <span id="user-display-email" class="user-email">...</span>
+        </div>
+      </div>
+      <button id="logout-btn" class="btn btn-secondary btn-sm" style="gap:6px;">
+        <i data-lucide="log-out" class="icon icon-xs"></i>
+        <span>Sign Out</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content View -->
+  <main class="app-main" id="main-content">
+    <div class="page-header d-flex justify-between align-center mb-6">
+      <div>
+        <h1>Business Workspaces</h1>
+        <p>Manage and switch between your isolated multi-tenant business workspaces.</p>
+      </div>
+      <button id="create-ws-top-btn" class="btn btn-primary" style="gap:6px;">
+        <i data-lucide="plus" class="icon icon-sm"></i>
+        <span>Create Workspace</span>
+      </button>
+    </div>
+
+    <!-- Identity & Verification Banner -->
+    <div class="identity-banner">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <i data-lucide="shield-check" class="icon icon-md" style="color:var(--color-primary);"></i>
+        <div>
+          <strong style="color:var(--color-info-text);">Server-Verified Identity:</strong>
+          <span id="verified-uid" class="identity-badge-pill" style="margin-left:8px;">Verifying...</span>
+        </div>
+      </div>
+      <span class="badge badge-success">Firebase Auth Active</span>
+    </div>
+
+    <!-- Loading Skeleton Placeholder -->
+    <div id="ws-loading-skeleton" class="d-flex flex-column gap-3 mb-6">
+      <div class="skeleton" style="height: 110px; width: 100%; border-radius: var(--radius-lg);"></div>
+      <div class="skeleton" style="height: 110px; width: 100%; border-radius: var(--radius-lg);"></div>
+    </div>
+
+    <!-- Empty State Container -->
+    <div id="ws-empty-state" class="empty-state-card d-none">
+      <div class="empty-state-icon" aria-hidden="true">
+        <i data-lucide="building-2" class="icon" style="width:36px;height:36px;"></i>
+      </div>
+      <h2>No Workspaces Found</h2>
+      <p>
+        You don't have access to any business workspaces yet. Create your first workspace to start managing clients, transactions, and financial analytics.
+      </p>
+      <button id="empty-create-ws-btn" class="btn btn-primary btn-lg" style="gap:8px;">
+        <i data-lucide="plus" class="icon icon-sm"></i>
+        <span>Create Your First Workspace</span>
+      </button>
+    </div>
+
+    <!-- Workspaces Grid Container -->
+    <div id="ws-grid-container" class="workspaces-grid d-none">
+      <!-- Dynamically populated cards -->
+    </div>
+  </main>
+
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Workspace View Logic Script -->
+  <script type="module">
+    import { requireAuth, logout } from "./assets/js/auth.js";
+    import { fetchUserProfile, showToast } from "./assets/js/api.js";
+    import {
+      fetchWorkspaces,
+      getActiveWorkspaceId,
+      setActiveWorkspaceId,
+      resolveActiveWorkspace,
+      openCreateWorkspaceModal,
+      renderWorkspaceSwitcher
+    } from "./assets/js/workspace.js";
+
+    // Initialize Lucide icons on static elements
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons();
+    }
+
+    // 1. Route Guard: Ensure user is authenticated
+    const user = await requireAuth("login.html");
+
+    // Elements
+    const userAvatar = document.getElementById("user-avatar");
+    const userDisplayName = document.getElementById("user-display-name");
+    const userDisplayEmail = document.getElementById("user-display-email");
+    const verifiedUid = document.getElementById("verified-uid");
+    const logoutBtn = document.getElementById("logout-btn");
+    const wsSkeleton = document.getElementById("ws-loading-skeleton");
+    const wsEmptyState = document.getElementById("ws-empty-state");
+    const wsGridContainer = document.getElementById("ws-grid-container");
+    const navWsSwitcher = document.getElementById("nav-workspace-switcher");
+    const createWsTopBtn = document.getElementById("create-ws-top-btn");
+    const emptyCreateWsBtn = document.getElementById("empty-create-ws-btn");
+
+    // Populate user profile info in header
+    userDisplayEmail.textContent = user.email || "No email";
+    userDisplayName.textContent = user.displayName || user.email?.split("@")[0] || "User";
+    userAvatar.textContent = (user.displayName?.[0] || user.email?.[0] || "U").toUpperCase();
+
+    // Sign out handler
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        await logout();
+        window.location.replace("login.html");
+      } catch (err) {
+        showToast("Error signing out: " + err.message, "error");
+      }
+    });
+
+    // Modal creation triggers
+    createWsTopBtn.addEventListener("click", () => openCreateWorkspaceModal(() => loadAllData()));
+    emptyCreateWsBtn.addEventListener("click", () => openCreateWorkspaceModal(() => loadAllData()));
+
+    // 2. Fetch server-verified identity from GET /api/v1/me
+    async function loadIdentity() {
+      try {
+        const profile = await fetchUserProfile();
+        verifiedUid.textContent = `UID: ${profile.uid}`;
+      } catch (err) {
+        console.error("Identity check failed:", err);
+        verifiedUid.textContent = `UID: ${user.uid} (offline)`;
+      }
+    }
+
+    // 3. Load all accessible workspaces
+    async function loadAllData() {
+      wsSkeleton.classList.remove("d-none");
+      wsEmptyState.classList.add("d-none");
+      wsGridContainer.classList.add("d-none");
+
+      try {
+        const workspaces = await fetchWorkspaces();
+        const active = await resolveActiveWorkspace(workspaces);
+        const activeId = active?.id || getActiveWorkspaceId();
+
+        // Render header switcher dropdown
+        renderWorkspaceSwitcher(navWsSwitcher, workspaces, active, (newId) => {
+          loadAllData();
+          showToast("Workspace switched successfully", "info");
+        });
+
+        wsSkeleton.classList.add("d-none");
+
+        if (!workspaces || workspaces.length === 0) {
+          wsEmptyState.classList.remove("d-none");
+          if (window.lucide && typeof window.lucide.createIcons === "function") {
+            window.lucide.createIcons();
+          }
+          return;
+        }
+
+        // Populate Workspace Cards
+        wsGridContainer.innerHTML = "";
+        workspaces.forEach(ws => {
+          const isActive = ws.id === activeId;
+          const roleClass = ws.role === "OWNER"
+            ? "badge-primary"
+            : ws.role === "ADMIN"
+            ? "badge-info"
+            : "badge-neutral";
+
+          const card = document.createElement("div");
+          card.className = `workspace-card${isActive ? " active" : ""}`;
+
+          card.innerHTML = `
+            <div class="workspace-card-header">
+              <div style="display:flex;align-items:center;gap:8px;overflow:hidden;">
+                <h3 class="workspace-card-title">${ws.name}</h3>
+                ${isActive ? '<span class="badge badge-success">Active</span>' : ''}
+              </div>
+              <span class="badge ${roleClass}">${ws.role}</span>
+            </div>
+            <div class="workspace-card-body">
+              <div class="workspace-meta-row">
+                <span class="workspace-meta-label">Default Currency:</span>
+                <span class="badge badge-neutral">${ws.defaultCurrency || 'INR'}</span>
+              </div>
+              <div class="workspace-meta-row">
+                <span class="workspace-meta-label">Tenant ID:</span>
+                <span class="tenant-id-pill">${ws.id}</span>
+              </div>
+            </div>
+            <div class="workspace-card-footer">
+              ${isActive ? `
+                <a href="dashboard.html" class="btn btn-primary btn-sm" style="gap:6px;">
+                  <i data-lucide="bar-chart-3" class="icon icon-xs"></i>
+                  <span>Open Dashboard</span>
+                </a>
+              ` : `
+                <button class="btn btn-secondary btn-sm select-ws-btn" data-id="${ws.id}" style="gap:6px;">
+                  <span>Switch to Workspace</span>
+                  <i data-lucide="arrow-right" class="icon icon-xs"></i>
+                </button>
+              `}
+            </div>
+          `;
+
+          const selectBtn = card.querySelector(".select-ws-btn");
+          if (selectBtn) {
+            selectBtn.addEventListener("click", () => {
+              setActiveWorkspaceId(ws.id);
+              showToast(`Switched to ${ws.name}`, "success");
+              loadAllData();
+            });
+          }
+
+          wsGridContainer.appendChild(card);
+        });
+
+        wsGridContainer.classList.remove("d-none");
+        wsGridContainer.style.display = "grid";
+
+        if (window.lucide && typeof window.lucide.createIcons === "function") {
+          window.lucide.createIcons();
+        }
+      } catch (err) {
+        wsSkeleton.classList.add("d-none");
+        showToast("Failed to load workspaces: " + err.message, "error");
+      }
+    }
+
+    // Execute on page load
+    await loadIdentity();
+    await loadAllData();
+  </script>
+</body>
+</html>

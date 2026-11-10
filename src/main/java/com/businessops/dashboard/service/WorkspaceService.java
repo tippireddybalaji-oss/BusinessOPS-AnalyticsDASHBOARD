@@ -4,13 +4,16 @@ import com.businessops.dashboard.dto.WorkspaceCreateRequest;
 import com.businessops.dashboard.dto.WorkspaceResponse;
 import com.businessops.dashboard.exception.ResourceNotFoundException;
 import com.businessops.dashboard.exception.WorkspaceAccessDeniedException;
+import com.businessops.dashboard.model.DefaultCategories;
 import com.businessops.dashboard.model.Workspace;
 import com.businessops.dashboard.model.WorkspaceMember;
 import com.businessops.dashboard.model.WorkspaceRole;
+import com.businessops.dashboard.repository.CategoryRepository;
 import com.businessops.dashboard.repository.WorkspaceRepository;
 import com.businessops.dashboard.validation.SupportedCurrencies;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -33,13 +36,21 @@ public class WorkspaceService {
     private static final Logger log = LoggerFactory.getLogger(WorkspaceService.class);
 
     private final WorkspaceRepository workspaceRepository;
+    private final CategoryRepository categoryRepository;
 
     public WorkspaceService(WorkspaceRepository workspaceRepository) {
+        this(workspaceRepository, null);
+    }
+
+    @Autowired
+    public WorkspaceService(WorkspaceRepository workspaceRepository,
+                            @Autowired(required = false) CategoryRepository categoryRepository) {
         this.workspaceRepository = workspaceRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     /**
-     * Creates a new business workspace and automatically provisions the owner's membership.
+     * Creates a new business workspace, provisions owner membership, and seeds default categories.
      *
      * @param authenticatedUid verified Firebase UID of the creator
      * @param request creation request with validated name and optional currency
@@ -59,6 +70,18 @@ public class WorkspaceService {
 
         Workspace created = workspaceRepository.createWorkspace(workspace, ownerMember);
         log.info("Workspace created: id='{}', name='{}', owner='{}'", created.getId(), created.getName(), authenticatedUid);
+
+        // Seed deterministic default categories for the new workspace
+        if (categoryRepository != null) {
+            try {
+                categoryRepository.seedDefaultCategories(
+                        created.getId(),
+                        DefaultCategories.createDefaultCategories(created.getId(), authenticatedUid)
+                );
+            } catch (Exception e) {
+                log.warn("Failed to seed default categories for workspace {}: {}", created.getId(), e.getMessage());
+            }
+        }
 
         return WorkspaceResponse.from(created, WorkspaceRole.OWNER);
     }

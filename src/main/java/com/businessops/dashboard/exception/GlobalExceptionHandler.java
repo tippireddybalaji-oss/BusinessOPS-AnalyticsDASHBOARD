@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -223,6 +225,38 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
         return ResponseEntity.status(status).body(body);
+    }
+
+    /**
+     * Handles analytics processing limit exceeded (422 Unprocessable Content).
+     *
+     * <p>Returns structured limitDetails distinguishing Tier 1 pre-flight rejection from
+     * Tier 2 runtime streaming hard-cap abort adhering to Phase 5 Section 6.3.
+     */
+    @ExceptionHandler(AnalyticsProcessingLimitException.class)
+    public ResponseEntity<Map<String, Object>> handleAnalyticsProcessingLimit(
+            AnalyticsProcessingLimitException ex,
+            HttpServletRequest request) {
+
+        log.warn("Analytics processing limit exceeded on {}: {}", request.getRequestURI(), ex.getMessage());
+
+        Map<String, Object> limitDetails = new LinkedHashMap<>();
+        limitDetails.put("enforcementTier", ex.getSafeguardType().name());
+        limitDetails.put("maxAllowedCount", ex.getMaxAllowedCount());
+        limitDetails.put("totalEligibleCount", ex.getTotalEligibleCount());
+        limitDetails.put("observedMatchingCountLowerBound",
+                ex.getSafeguardType() == LimitSafeguardType.RUNTIME_STREAMING_SAFEGUARD ? 10001L : null);
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", HttpStatus.UNPROCESSABLE_ENTITY.value());
+        body.put("error", "Unprocessable Content");
+        body.put("errorCode", "ANALYTICS_PROCESSING_LIMIT_EXCEEDED");
+        body.put("message", ex.getMessage());
+        body.put("path", request.getRequestURI());
+        body.put("timestamp", Instant.now().toString());
+        body.put("limitDetails", limitDetails);
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(body);
     }
 
     /**

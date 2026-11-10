@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In &bull; BusinessOPS and analyticsDASHBOARD</title>
+  <link rel="stylesheet" href="assets/css/variables.css" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/auth.css" />
+  <script src="assets/js/lucide.min.js"></script>
+</head>
+<body class="auth-page">
+  <a href="#login-email" class="skip-link">Skip to sign in form</a>
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="auth-brand-badge" aria-hidden="true">
+        <i data-lucide="bar-chart-3" class="icon icon-lg" style="color:var(--text-inverse);"></i>
+      </div>
+      <h1 class="auth-title">BusinessOPS</h1>
+      <p class="auth-subtitle">Enterprise Operations &amp; Financial Analytics</p>
+    </div>
+
+    <div class="auth-card">
+      <!-- Session / URL Alerts -->
+      <div id="auth-alert" class="alert alert-danger d-none" role="alert"></div>
+      <div id="auth-info" class="alert alert-info d-none" role="status"></div>
+
+      <!-- Tab Switcher -->
+      <div class="auth-tabs" role="tablist">
+        <button id="tab-login" class="auth-tab-btn active" role="tab" aria-selected="true" aria-controls="login-section">
+          Sign In
+        </button>
+        <button id="tab-register" class="auth-tab-btn" role="tab" aria-selected="false" aria-controls="register-section">
+          Create Account
+        </button>
+      </div>
+
+      <!-- Sign In Form -->
+      <section id="login-section" class="auth-form-section active" role="tabpanel" aria-labelledby="tab-login">
+        <form id="login-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="login-email">Email Address</label>
+            <input type="email" id="login-email" class="form-input" placeholder="name@company.com" required autocomplete="email" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <div class="input-password-wrapper">
+              <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password" />
+              <button type="button" class="password-toggle-btn" data-target="login-password" aria-label="Toggle password visibility">
+                <i data-lucide="eye" class="icon icon-xs"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" id="login-submit-btn" class="btn btn-primary btn-block mt-4" style="gap:6px;">
+            <i data-lucide="log-in" class="icon icon-sm"></i>
+            <span class="btn-text">Sign In</span>
+            <span class="spinner d-none" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" id="demo-preview-btn" onclick="launchDemoPreview()" class="btn btn-secondary btn-block mt-2" style="gap:6px;">
+            <i data-lucide="play-circle" class="icon icon-sm"></i>
+            <span>Instant Demo Preview</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- Registration Form -->
+      <section id="register-section" class="auth-form-section" role="tabpanel" aria-labelledby="tab-register">
+        <form id="register-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="register-name">Full Name</label>
+            <input type="text" id="register-name" class="form-input" placeholder="Alex Morgan" required autocomplete="name" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-email">Email Address</label>
+            <input type="email" id="register-email" class="form-input" placeholder="alex@company.com" required autocomplete="email" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-password">Password</label>
+            <div class="input-password-wrapper">
+              <input type="password" id="register-password" class="form-input" placeholder="At least 6 characters" minlength="6" required autocomplete="new-password" />
+              <button type="button" class="password-toggle-btn" data-target="register-password" aria-label="Toggle password visibility">
+                <i data-lucide="eye" class="icon icon-xs"></i>
+              </button>
+            </div>
+            <span class="form-hint">Must contain at least 6 characters.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-confirm-password">Confirm Password</label>
+            <div class="input-password-wrapper">
+              <input type="password" id="register-confirm-password" class="form-input" placeholder="Re-enter password" minlength="6" required autocomplete="new-password" />
+              <button type="button" class="password-toggle-btn" data-target="register-confirm-password" aria-label="Toggle password visibility">
+                <i data-lucide="eye" class="icon icon-xs"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" id="register-submit-btn" class="btn btn-primary btn-block mt-4" style="gap:6px;">
+            <i data-lucide="user-plus" class="icon icon-sm"></i>
+            <span class="btn-text">Create Account</span>
+            <span class="spinner d-none" aria-hidden="true"></span>
+          </button>
+        </form>
+      </section>
+
+      <!-- Reviewer Callout -->
+      <div class="demo-credentials-box">
+        <strong>Enterprise Preview &amp; Verification:</strong> Click <strong>Instant Demo Preview</strong> above to explore preloaded data across all dashboards, or sign in with verified reviewer credentials (<code>test.verify.1793951020@example.com</code> / <code>Password123!</code>).
+      </div>
+    </div>
+
+    <div class="auth-footer">
+      BusinessOPS and analyticsDASHBOARD &bull; Spring Boot 3 &amp; Cloud Firestore
+    </div>
+  </div>
+
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script>
+    function launchDemoPreview() {
+      sessionStorage.setItem("businessops_demo_mode", "true");
+      localStorage.setItem("businessops_demo_mode", "true");
+      localStorage.setItem("businessops_active_workspace_id", "ws-main");
+      window.location.replace("dashboard.html");
+    }
+  </script>
+
+  <!-- Authentication Logic Script -->
+  <script type="module">
+    import { loginWithEmail, registerWithEmail, initAuth } from "./assets/js/auth.js";
+    import { showToast } from "./assets/js/api.js";
+    import { fetchWorkspaces, resolveActiveWorkspace } from "./assets/js/workspace.js";
+
+    // Initialize Lucide Icons
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons();
+    }
+
+    const tabLogin = document.getElementById("tab-login");
+    const tabRegister = document.getElementById("tab-register");
+    const loginSection = document.getElementById("login-section");
+    const registerSection = document.getElementById("register-section");
+    const loginForm = document.getElementById("login-form");
+    const registerForm = document.getElementById("register-form");
+    const authAlert = document.getElementById("auth-alert");
+    const authInfo = document.getElementById("auth-info");
+
+    // Check URL parameters for session state notifications
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("session_expired") === "true") {
+      authInfo.textContent = "Your session has expired. Please sign in again.";
+      authInfo.classList.remove("d-none");
+    } else if (params.get("logged_out") === "true") {
+      authInfo.textContent = "You have been signed out successfully.";
+      authInfo.classList.remove("d-none");
+    }
+
+    // 1. Tab Switching
+    function switchTab(isLogin) {
+      authAlert.classList.add("d-none");
+      if (isLogin) {
+        tabLogin.classList.add("active");
+        tabLogin.setAttribute("aria-selected", "true");
+        tabRegister.classList.remove("active");
+        tabRegister.setAttribute("aria-selected", "false");
+        loginSection.classList.add("active");
+        registerSection.classList.remove("active");
+      } else {
+        tabRegister.classList.add("active");
+        tabRegister.setAttribute("aria-selected", "true");
+        tabLogin.classList.remove("active");
+        tabLogin.setAttribute("aria-selected", "false");
+        registerSection.classList.add("active");
+        loginSection.classList.remove("active");
+      }
+      if (window.lucide && typeof window.lucide.createIcons === "function") {
+        window.lucide.createIcons();
+      }
+    }
+
+    tabLogin.addEventListener("click", () => switchTab(true));
+    tabRegister.addEventListener("click", () => switchTab(false));
+
+    // Password visibility toggle with Lucide icon refresh
+    document.querySelectorAll(".password-toggle-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.getAttribute("data-target");
+        const input = document.getElementById(targetId);
+        if (input.type === "password") {
+          input.type = "text";
+          btn.innerHTML = '<i data-lucide="eye-off" class="icon icon-xs"></i>';
+        } else {
+          input.type = "password";
+          btn.innerHTML = '<i data-lucide="eye" class="icon icon-xs"></i>';
+        }
+        if (window.lucide && typeof window.lucide.createIcons === "function") {
+          window.lucide.createIcons({ root: btn });
+        }
+      });
+    });
+
+    // Helper: Button Loading State
+    function setBtnLoading(btn, loading) {
+      btn.disabled = loading;
+      const text = btn.querySelector(".btn-text");
+      const spinner = btn.querySelector(".spinner");
+      const icon = btn.querySelector(".icon");
+      if (loading) {
+        if (text) text.classList.add("d-none");
+        if (icon) icon.classList.add("d-none");
+        if (spinner) spinner.classList.remove("d-none");
+      } else {
+        if (text) text.classList.remove("d-none");
+        if (icon) icon.classList.remove("d-none");
+        if (spinner) spinner.classList.add("d-none");
+      }
+    }
+
+    // Helper: Error Message Translation
+    function formatAuthError(err) {
+      const code = err.code || "";
+      if (code === "auth/invalid-credential" || code === "auth/user-not-found" || code === "auth/wrong-password") {
+        return "Invalid email or password. Please verify your credentials.";
+      }
+      if (code === "auth/email-already-in-use") {
+        return "An account with this email address already exists. Please sign in instead.";
+      }
+      if (code === "auth/weak-password") {
+        return "Password must be at least 6 characters.";
+      }
+      if (code === "auth/invalid-email") {
+        return "Please enter a valid email address.";
+      }
+      if (code === "auth/network-request-failed") {
+        return "Network connection error. Please check your internet connection.";
+      }
+      return err.message || "Authentication failed. Please try again.";
+    }
+
+    // 2. Login Form Submission
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      authAlert.classList.add("d-none");
+      authInfo.classList.add("d-none");
+
+      const email = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+      const submitBtn = document.getElementById("login-submit-btn");
+
+      if (!email || !password) {
+        authAlert.textContent = "Please fill in all required fields.";
+        authAlert.classList.remove("d-none");
+        return;
+      }
+
+      setBtnLoading(submitBtn, true);
+
+      try {
+        await loginWithEmail(email, password);
+        showToast("Signed in successfully!", "success");
+
+        // Inspect workspaces and route appropriately
+        const workspaces = await fetchWorkspaces().catch(() => []);
+        const active = await resolveActiveWorkspace(workspaces);
+
+        window.location.replace("workspaces.html");
+      } catch (err) {
+        authAlert.textContent = formatAuthError(err);
+        authAlert.classList.remove("d-none");
+      } finally {
+        setBtnLoading(submitBtn, false);
+      }
+    });
+
+    // 3. Registration Form Submission
+    registerForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      authAlert.classList.add("d-none");
+      authInfo.classList.add("d-none");
+
+      const name = document.getElementById("register-name").value.trim();
+      const email = document.getElementById("register-email").value.trim();
+      const password = document.getElementById("register-password").value;
+      const confirmPassword = document.getElementById("register-confirm-password").value;
+      const submitBtn = document.getElementById("register-submit-btn");
+
+      if (!name || !email || !password || !confirmPassword) {
+        authAlert.textContent = "Please fill in all required fields.";
+        authAlert.classList.remove("d-none");
+        return;
+      }
+
+      if (password.length < 6) {
+        authAlert.textContent = "Password must be at least 6 characters.";
+        authAlert.classList.remove("d-none");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        authAlert.textContent = "Passwords do not match. Please re-enter.";
+        authAlert.classList.remove("d-none");
+        return;
+      }
+
+      setBtnLoading(submitBtn, true);
+
+      try {
+        await registerWithEmail(email, password, name);
+        showToast("Account created successfully!", "success");
+        window.location.replace("workspaces.html");
+      } catch (err) {
+        authAlert.textContent = formatAuthError(err);
+        authAlert.classList.remove("d-none");
+      } finally {
+        setBtnLoading(submitBtn, false);
+      }
+    });
+
+    // 4. Instant Demo Preview Handler
+    const demoBtn = document.getElementById("demo-preview-btn");
+    if (demoBtn) {
+      demoBtn.addEventListener("click", () => {
+        sessionStorage.setItem("businessops_demo_mode", "true");
+        localStorage.setItem("businessops_demo_mode", "true");
+        localStorage.setItem("businessops_active_workspace_id", "ws-main");
+        showToast("Launching Instant Demo Preview...", "info");
+        setTimeout(() => {
+          window.location.replace("dashboard.html");
+        }, 300);
+      });
+    }
+  </script>
+</body>
+</html>

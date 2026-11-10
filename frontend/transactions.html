@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transactions &bull; BusinessOPS</title>
+  <link rel="stylesheet" href="assets/css/variables.css" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/dashboard.css" />
+  <link rel="stylesheet" href="assets/css/operations.css" />
+  <script src="assets/js/lucide.min.js"></script>
+</head>
+<body class="app-shell">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <header class="app-header">
+    <div class="brand-wrapper"><div class="brand-logo-icon" aria-hidden="true"><i data-lucide="layout-grid" class="icon icon-sm" style="color:var(--text-inverse);"></i></div><div class="brand-title">Business<span>OPS</span></div><nav class="nav-links-group" aria-label="Main Navigation"><a href="dashboard.html" class="nav-link"><i data-lucide="bar-chart-3" class="icon icon-xs"></i><span>Dashboard</span></a><a href="clients.html" class="nav-link"><i data-lucide="users" class="icon icon-xs"></i><span>Clients</span></a><a href="transactions.html" class="nav-link active"><i data-lucide="receipt-text" class="icon icon-xs"></i><span>Transactions</span></a><a href="workspaces.html" class="nav-link"><i data-lucide="briefcase" class="icon icon-xs"></i><span>Workspaces</span></a></nav><div id="nav-workspace-switcher" class="ml-4"></div></div>
+    <div class="header-actions"><div class="user-profile-menu"><div id="user-avatar" class="user-avatar-badge" aria-hidden="true">U</div><div class="user-info"><span id="user-display-name" class="user-name">Loading...</span><span id="user-display-email" class="user-email">...</span></div></div><button id="logout-btn" class="btn btn-secondary btn-sm" style="gap:6px;"><i data-lucide="log-out" class="icon icon-xs"></i><span>Sign Out</span></button></div>
+  </header>
+  <main class="app-main" id="main-content">
+    <div class="page-header d-flex justify-between align-center"><div><h1>Transaction Operations</h1><p>Record and review the workspace financial ledger.</p></div><button id="create-transaction-btn" class="btn btn-primary" style="gap:6px;"><i data-lucide="plus" class="icon icon-sm"></i><span>Add Transaction</span></button></div>
+    <div id="transactions-readonly-note" class="alert alert-info d-none" role="status"><i data-lucide="lock" class="icon icon-sm"></i><span>Your workspace role provides read-only access to transactions.</span></div>
+    <section class="operations-toolbar" aria-label="Transaction filters"><div class="operations-filters"><div class="operations-filter search"><label class="form-label" for="transaction-search">Search</label><input id="transaction-search" class="form-input" type="search" placeholder="Search description, category, or client" /></div><div class="operations-filter"><label class="form-label" for="transaction-type-filter">Type</label><select id="transaction-type-filter" class="form-select"><option value="">All types</option><option value="INCOME">Income</option><option value="EXPENSE">Expense</option></select></div><div class="operations-filter"><label class="form-label" for="transaction-category-filter">Category</label><select id="transaction-category-filter" class="form-select"><option value="">All categories</option></select></div></div><span id="transactions-loading" class="spinner d-none" aria-label="Loading transactions"></span></section>
+    <div id="transactions-search-warning" class="alert alert-warning d-none" role="status"></div>
+    <section class="operations-card" aria-labelledby="transactions-heading"><div class="operations-card-header"><div><h2 id="transactions-heading">Ledger</h2><span id="transactions-count" class="operations-count" aria-live="polite">0 transactions</span></div></div><div id="transactions-table-wrap" class="data-table-container"><table class="data-table"><caption class="visually-hidden">Workspace financial transactions ledger</caption><thead><tr><th scope="col">Date</th><th scope="col">Type</th><th scope="col">Entry</th><th scope="col" class="text-right">Amount</th><th scope="col">Status</th><th scope="col" class="text-right">Actions</th></tr></thead><tbody id="transactions-table-body"></tbody></table></div><div id="transactions-empty" class="operations-empty d-none"></div><div class="pagination"><span id="transactions-page-status" aria-live="polite">No pages</span><div class="pagination-controls"><button id="transactions-previous" class="btn btn-secondary btn-sm" disabled>Previous</button><button id="transactions-next" class="btn btn-secondary btn-sm" disabled>Next</button></div></div></section>
+  </main>
+  <div id="transaction-modal-backdrop" class="modal-backdrop d-none"></div>
+  <div id="toast-container" aria-live="polite"></div>
+  <script type="module" src="assets/js/transactions.js"></script>
+</body>
+</html>

@@ -28,3 +28,4 @@ public record ClientCreateRequest(
         String notes
 ) {
 }
+
